@@ -7,14 +7,12 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /** Common columns: uuid pk (client-generatable), tenant, version for sync, meta for custom fields. */
-    private function make(string $name, callable $fn, bool $_soft = true, bool $property = true): void
+    private function make(string $name, callable $fn, bool $_soft = true, bool $_property = true): void
     {
-        Schema::create($name, function (Blueprint $t) use ($fn, $property) {
+        Schema::create($name, function (Blueprint $t) use ($fn) {
             $t->uuid('id')->primary();
             $t->foreignUuid('tenant_id')->constrained()->cascadeOnDelete();
-            if ($property) {
-                $t->uuid('property_id')->nullable()->index();
-            }
+            $t->uuid('property_id')->nullable()->index();
             $fn($t);
             $t->json('meta')->nullable();
             $t->unsignedInteger('version')->default(1);
