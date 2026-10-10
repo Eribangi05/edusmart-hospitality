@@ -6,19 +6,22 @@ Target: one VPS (2 vCPU / 4 GB is enough to start) close to Kigali, running the 
 - `edusmartconsult.com` stays your static site. Create `hospitality.edusmartconsult.com` (A record → VPS IP). The app serves the web console and the API (`/api/v1`) from this one host, so `api.hospitality…` is optional.
 - Terminate TLS in front of nginx (Caddy/Traefik/Cloudflare). Redirect HTTP → HTTPS. Keep `APP_URL=https://hospitality.edusmartconsult.com`.
 
-## 2. Configure
+## 2. Configure and start
+On the server (Ubuntu 24.04 with Docker installed, ports 80 and 443 open):
 ```bash
+git clone https://github.com/Eribangi05/edusmart-hospitality.git && cd edusmart-hospitality
 cp backend/.env.example backend/.env
-# set: APP_ENV=production APP_DEBUG=false APP_URL, DB_CONNECTION=mysql + DB_*, SESSION_DRIVER=redis CACHE_STORE=redis QUEUE_CONNECTION=redis,
-# SANCTUM_STATEFUL_DOMAINS=hospitality.edusmartconsult.com, MAIL_* (password reset needs real mail), MOMO_*
-export DB_PASSWORD=… DB_ROOT_PASSWORD=…
-docker compose up -d --build
-docker compose exec app php artisan key:generate --force   # once, then keep the key in .env
+nano backend/.env        # see the values below
+printf 'DB_PASSWORD=%s\nDB_ROOT_PASSWORD=%s\nDOMAIN=hospitality.edusmartconsult.com\n' "$(openssl rand -hex 16)" "$(openssl rand -hex 16)" > .env
+docker compose build
+docker compose run --rm app php artisan key:generate --show      # paste the result into APP_KEY in backend/.env
+docker compose up -d
 docker compose exec app php artisan migrate --force --seed
-docker compose exec app php artisan platform:create-admin you@example.com "Your Name" 'long-password'
+docker compose exec app php artisan platform:create-admin you@example.com "Your Name" 'a-long-password'
 docker compose exec app php artisan config:cache && docker compose exec app php artisan route:cache
 ```
-Never commit `.env`. Rotate `APP_KEY` only with a plan: it encrypts stored 2FA secrets.
+Values for `backend/.env`: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://hospitality.edusmartconsult.com`, `APP_KEY=base64:...`, `DB_CONNECTION=mysql`, `DB_HOST=db`, `DB_DATABASE=hospitality`, `DB_USERNAME=hospitality`, `DB_PASSWORD=` (same as the root `.env`), `SESSION_DRIVER=redis`, `SESSION_SECURE_COOKIE=true`, `CACHE_STORE=redis`, `QUEUE_CONNECTION=redis`, `REDIS_HOST=redis`, `SANCTUM_STATEFUL_DOMAINS=hospitality.edusmartconsult.com`, `MAIL_*` (needed for password reset), `MOMO_*`.
+Never commit either `.env`. Rotating `APP_KEY` later breaks stored 2FA secrets, so back it up.
 
 ## 3. MTN MoMo go-live
 1. Create an account at the MTN MoMo developer portal, subscribe to **Collections**, create the sandbox API user and key (`MOMO_SUBSCRIPTION_KEY`, `MOMO_API_USER`, `MOMO_API_KEY`), keep `MOMO_BASE_URL=https://sandbox.momodeveloper.mtn.com`, `MOMO_DRIVER=mtn`, `MOMO_CURRENCY=EUR` (the sandbox only accepts EUR).
