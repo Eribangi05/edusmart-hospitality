@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Support\Tenancy;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class Audit
 {
@@ -14,7 +15,7 @@ class Audit
         AuditLog::create([
             'tenant_id' => $tenantId ?? app(Tenancy::class)->id(),
             'user_id' => $userId ?? $req?->user()?->id,
-            'device_id' => $token?->device_id ?? null,
+            'device_id' => $token instanceof PersonalAccessToken ? $token->device_id : null,
             'action' => $action,
             'entity' => $entity,
             'entity_id' => $entityId,

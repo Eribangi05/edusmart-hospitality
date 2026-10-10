@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -121,10 +122,12 @@ class AuthController extends Controller
     public function logout(Request $r)
     {
         $token = $r->user()->currentAccessToken();
-        if ($token->device_id) {
-            DB::table('refresh_tokens')->where('device_id', $token->device_id)->delete();
+        if ($token instanceof PersonalAccessToken) {
+            if ($token->device_id) {
+                DB::table('refresh_tokens')->where('device_id', $token->device_id)->delete();
+            }
+            $token->delete();
         }
-        $token->delete();
 
         return response()->noContent();
     }

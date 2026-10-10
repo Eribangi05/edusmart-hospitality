@@ -7,6 +7,7 @@ use App\Models\Device;
 use App\Support\Tenancy;
 use Closure;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /** Derives the tenant from the authenticated token. Rejects revoked devices and suspended tenants. */
 class ResolveTenant
@@ -23,11 +24,12 @@ class ResolveTenant
         }
         app(Tenancy::class)->set($tenant);
 
-        $deviceId = $user->currentAccessToken()?->device_id;
+        $token = $user->currentAccessToken();
+        $deviceId = $token instanceof PersonalAccessToken ? $token->device_id : null; // cookie sessions have no device
         if ($deviceId) {
             $device = Device::find($deviceId);
             if (! $device || $device->revoked_at) {
-                $user->currentAccessToken()->delete();
+                $token->delete();
                 throw new ApiError('device_revoked', 'This device has been revoked.', 401);
             }
             if (! $device->last_seen_at || $device->last_seen_at->lt(now()->subMinutes(5))) {
