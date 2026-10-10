@@ -85,7 +85,7 @@
     <h1 class="text-2xl font-bold" x-text="$store.app.t('billing')"></h1>
     <template x-if="b"><div class="space-y-5">
       <div class="card flex flex-wrap items-center justify-between gap-3"><div><p class="text-sm text-slate-500">Status</p><p class="text-xl font-bold capitalize" x-text="b.status"></p><p class="text-sm text-slate-500" x-text="b.plan ? b.plan.name : ''"></p></div>
-        <div class="text-sm text-slate-600"><p x-show="b.status === 'trial'">Trial ends <b x-text="(b.trial_ends_at || '').slice(0,10)"></b></p><p x-show="b.paid_until">Paid until <b x-text="b.paid_until.slice(0,10)"></b></p></div></div>
+        <div class="text-sm text-slate-600"><p x-show="b.status === 'trial'">Trial ends <b x-text="(b.trial_ends_at || '').slice(0,10)"></b></p><p x-show="b.paid_until">Paid until <b x-text="(b.paid_until || '').slice(0,10)"></b></p></div></div>
       <div class="grid gap-3 sm:grid-cols-3"><template x-for="p in b.plans" :key="p.id"><div class="card space-y-2"><p class="font-semibold" x-text="p.name"></p><p class="text-2xl font-bold" x-text="money(p.price_monthly)"></p><p class="text-xs text-slate-500">per month</p><p class="text-xs capitalize text-slate-600" x-text="(p.modules || []).join(', ')"></p><button class="btn btn-primary w-full" @click="choose(p)">Choose</button></div></template></div>
       <div class="card space-y-3"><h2 class="font-semibold">Invoices</h2>
         <label class="text-sm font-medium">MTN MoMo number to charge<input class="input mt-1 max-w-xs" placeholder="2507…" x-model="phone"></label>

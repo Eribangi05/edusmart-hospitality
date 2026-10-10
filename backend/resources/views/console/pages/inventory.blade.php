@@ -12,10 +12,10 @@
         <td class="td" x-show="count"><input class="input w-24" type="number" step="any" x-model="counts[r.id]"></td>
         <td class="td text-right"><button x-show="$store.app.can('inventory.adjust')" class="btn btn-secondary btn-sm" @click="openAdjust(r)">Adjust</button></td></tr></template>
       <tr x-show="!loading && !rows.length"><td class="td text-slate-400" colspan="6" x-text="$store.app.t('no_data')"></td></tr></tbody></table></div>
-    <div x-show="adj" x-cloak class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4"><form class="card w-full max-w-sm space-y-3" @submit.prevent="saveAdjust()" x-show="adj"><h2 class="font-semibold" x-text="adj?.item.name"></h2>
+    <div x-show="adj" x-cloak class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4"><template x-if="adj"><form class="card w-full max-w-sm space-y-3" @submit.prevent="saveAdjust()"><h2 class="font-semibold" x-text="adj.item.name"></h2>
       <label class="text-sm font-medium">Type<select class="input mt-1" x-model="adj.type"><option value="purchase">Received / purchase</option><option value="waste">Waste / loss</option><option value="adjustment">Adjustment (+/−)</option><option value="return">Return</option></select></label>
       <label class="text-sm font-medium">Quantity<input class="input mt-1" type="number" step="any" x-model="adj.quantity" required></label><label class="text-sm font-medium">Note<input class="input mt-1" x-model="adj.note"></label>
-      <div class="flex justify-end gap-2"><button type="button" class="btn btn-secondary" @click="adj = null" x-text="$store.app.t('cancel')"></button><button class="btn btn-primary" x-text="$store.app.t('save')"></button></div></form></div>
+      <div class="flex justify-end gap-2"><button type="button" class="btn btn-secondary" @click="adj = null" x-text="$store.app.t('cancel')"></button><button class="btn btn-primary" x-text="$store.app.t('save')"></button></div></form></template></div>
   </div>
 </template>
 
