@@ -2,13 +2,18 @@
 
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\OperationsController;
+use App\Http\Controllers\Api\V1\PlatformController;
 use App\Http\Controllers\Api\V1\PosController;
 use App\Http\Controllers\Api\V1\ReportsController;
 use App\Http\Controllers\Api\V1\ResourceController;
 use App\Http\Controllers\Api\V1\RoomsController;
+use App\Http\Controllers\Api\V1\SyncController;
 use App\Http\Controllers\Api\V1\TourismController;
+use App\Http\Controllers\Api\V1\WebhookController;
 use App\Support\ResourceRegistry;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json(['status' => 'ok', 'time' => now()->toIso8601String()]));
@@ -20,7 +25,39 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 });
 
-Route::middleware(['auth:sanctum', 'tenant', 'throttle:240,1'])->group(function () {
+Route::post('/webhooks/momo/{token}', [WebhookController::class, 'momo'])->middleware('throttle:120,1');
+
+// ---- Platform super-admin console ----
+Route::middleware(['auth:sanctum', 'platform:basic'])->prefix('admin')->group(function () {
+    Route::post('/2fa/setup', [AuthController::class, 'twoFactorSetup']);
+    Route::post('/2fa/confirm', [AuthController::class, 'twoFactorConfirm']);
+    Route::post('/logout', fn (Request $r) => tap(response()->noContent(), fn () => $r->user()->currentAccessToken()->delete()));
+});
+
+Route::middleware(['auth:sanctum', 'platform', 'throttle:600,1'])->prefix('admin')->group(function () {
+    Route::get('/metrics', [PlatformController::class, 'metrics']);
+    Route::get('/tenants', [PlatformController::class, 'tenants']);
+    Route::get('/tenants/{id}', [PlatformController::class, 'tenant']);
+    Route::post('/tenants/{id}/status', [PlatformController::class, 'setStatus']);
+    Route::post('/tenants/{id}/plan', [PlatformController::class, 'setPlan']);
+    Route::post('/tenants/{id}/impersonate', [PlatformController::class, 'impersonate']);
+    Route::post('/invoices/{id}/mark-paid', [PlatformController::class, 'markInvoicePaid']);
+    Route::get('/plans', [PlatformController::class, 'plans']);
+    Route::post('/plans', [PlatformController::class, 'savePlan']);
+    Route::patch('/plans/{id}', [PlatformController::class, 'savePlan']);
+    Route::get('/audit', [PlatformController::class, 'audit']);
+});
+
+Route::middleware(['auth:sanctum', 'tenant', 'throttle:1200,1'])->group(function () {
+    Route::get('/sync/pull', [SyncController::class, 'pull']);
+    Route::post('/sync/push', [SyncController::class, 'push']);
+
+    // ---- Subscription billing (owner) ----
+    Route::get('/billing', [BillingController::class, 'show'])->middleware('perm:core.settings');
+    Route::post('/billing/plan', [BillingController::class, 'choosePlan'])->middleware('perm:core.settings');
+    Route::post('/billing/invoices/{id}/pay', [BillingController::class, 'pay'])->middleware('perm:core.settings');
+    Route::get('/billing/invoices/{id}', [BillingController::class, 'invoice'])->middleware('perm:core.settings');
+
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/2fa/setup', [AuthController::class, 'twoFactorSetup']);
     Route::post('/auth/2fa/confirm', [AuthController::class, 'twoFactorConfirm']);

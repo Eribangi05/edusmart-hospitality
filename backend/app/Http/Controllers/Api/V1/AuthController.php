@@ -195,6 +195,12 @@ class AuthController extends Controller
     /** Create/refresh the device row and mint an access + refresh token pair. */
     private function issue(User $user, array $dev): array
     {
+        if (! $user->tenant_id) { // platform staff: no device row, short session, no refresh token
+            $new = $user->createToken('platform', ['*'], now()->addHours(8));
+            Audit::log('auth.platform_login', 'user', $user->id, null, null, null, $user->id);
+
+            return ['access_token' => $new->plainTextToken, 'refresh_token' => null, 'expires_in' => 8 * 3600];
+        }
         $device = app(Tenancy::class)->run($user->tenant ?? new Tenant, function () use ($user, $dev) {
             $device = Device::withoutGlobalScopes()->find($dev['id']);
             if ($device && ($device->tenant_id !== $user->tenant_id || $device->revoked_at)) {

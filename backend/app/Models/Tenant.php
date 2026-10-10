@@ -16,7 +16,7 @@ class Tenant extends Model
 
     protected function casts(): array
     {
-        return ['meta' => 'array', 'trial_ends_at' => 'datetime'];
+        return ['meta' => 'array', 'trial_ends_at' => 'datetime', 'paid_until' => 'datetime', 'grace_ends_at' => 'datetime'];
     }
 
     public function plan()

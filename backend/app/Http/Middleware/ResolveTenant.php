@@ -35,7 +35,7 @@ class ResolveTenant
             }
         }
 
-        if (! $tenant->isOperational() && ! $request->isMethod('GET')) {
+        if (! $tenant->isOperational() && ! $request->isMethod('GET') && ! $request->is('api/v1/billing/*')) {
             throw new ApiError('subscription_suspended', 'Subscription suspended. Read-only access.', 402);
         }
 

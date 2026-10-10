@@ -53,7 +53,7 @@ class ResourceRegistry
                     'config' => 'nullable|array', 'is_active' => 'boolean', 'position' => 'integer|min:0']],
 
             // ---- guests / catalog ----
-            'guests' => ['model' => D\Guest::class, 'module' => null, 'perm' => 'rooms', 'perms_any' => ['rooms', 'tourism', 'pos'], 'search' => ['name', 'phone', 'email', 'id_number'], 'filters' => ['nationality'],
+            'guests' => ['model' => D\Guest::class, 'module' => null, 'perm' => 'rooms', 'perms_any' => ['rooms', 'tourism'], 'search' => ['name', 'phone', 'email', 'id_number'], 'filters' => ['nationality'],
                 'rules' => fn () => ['name' => 'required|string|max:150', 'phone' => 'nullable|string|max:30', 'email' => 'nullable|email', 'nationality' => 'nullable|string|max:60',
                     'id_type' => 'nullable|string|max:30', 'id_number' => 'nullable|string|max:60', 'id_photo_path' => 'nullable|string', 'dob' => 'nullable|date', 'notes' => 'nullable|string', 'meta' => 'nullable|array']],
             'catalog-categories' => ['model' => D\CatalogCategory::class, 'module' => null, 'perm' => 'pos', 'perms_any' => ['pos', 'shop', 'tourism', 'rooms'], 'search' => ['name'], 'filters' => ['kind', 'property_id', 'is_active'],

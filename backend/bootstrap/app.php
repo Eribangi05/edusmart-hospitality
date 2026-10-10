@@ -3,6 +3,7 @@
 use App\Exceptions\ApiError;
 use App\Http\Middleware\CheckModule;
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\PlatformAdmin;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => ResolveTenant::class,
             'perm' => CheckPermission::class,
             'module' => CheckModule::class,
+            'platform' => PlatformAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
