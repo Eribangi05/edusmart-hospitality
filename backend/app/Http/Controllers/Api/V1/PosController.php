@@ -110,6 +110,13 @@ class PosController extends Controller
         return response()->json(['data' => $this->view($this->pos->applyDiscount(Order::findOrFail($id), $d['amount'] ?? null, $d['percent_bp'] ?? null, $d['manager_pin'] ?? null))]);
     }
 
+    public function voucher(Request $r, string $id)
+    {
+        $d = $r->validate(['code' => 'required|string|max:40']);
+
+        return response()->json(['data' => $this->view($this->pos->applyVoucher(Order::findOrFail($id), $d['code']))]);
+    }
+
     public function tip(Request $r, string $id)
     {
         $d = $r->validate(['tip' => 'required|integer|min:0']);

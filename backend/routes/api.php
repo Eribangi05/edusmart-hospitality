@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BillingController;
+use App\Http\Controllers\Api\V1\InsightsController;
 use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\PlatformController;
 use App\Http\Controllers\Api\V1\PosController;
@@ -56,6 +57,16 @@ Route::middleware(['auth:sanctum', 'tenant', 'throttle:1200,1'])->group(function
     Route::get('/sync/pull', [SyncController::class, 'pull']);
     Route::post('/sync/push', [SyncController::class, 'push']);
 
+    // ---- Insights (search, alerts, charts, desk, timeline, checklist) ----
+    Route::get('/search', [InsightsController::class, 'search']);
+    Route::get('/notifications', [InsightsController::class, 'notifications']);
+    Route::get('/activity', [InsightsController::class, 'activity'])->middleware('perm:core.audit');
+    Route::get('/onboarding', [InsightsController::class, 'onboarding'])->middleware('perm:core.settings');
+    Route::get('/reports/trends', [InsightsController::class, 'trends'])->middleware('perm:finance.view,rooms.view,pos.view,tourism.view');
+    Route::get('/desk', [InsightsController::class, 'desk'])->middleware('module:rooms')->middleware('perm:rooms.view');
+    Route::get('/rooms/timeline', [InsightsController::class, 'timeline'])->middleware('module:rooms')->middleware('perm:rooms.view');
+    Route::get('/guests/{id}/profile', [InsightsController::class, 'guestProfile'])->middleware('perm:rooms.view,tourism.view');
+
     // ---- Privacy: data portability and erasure request (owner) ----
     Route::get('/data-export', [PrivacyController::class, 'export'])->middleware('perm:core.settings');
     Route::post('/tenant/deletion-request', [PrivacyController::class, 'requestDeletion'])->middleware('perm:core.settings');
@@ -105,6 +116,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'throttle:1200,1'])->group(function
         Route::post('/orders/{id}/send', [PosController::class, 'send'])->middleware('perm:pos.edit');
         Route::post('/orders/{id}/void', [PosController::class, 'voidOrder'])->middleware('perm:pos.edit');
         Route::post('/orders/{id}/discount', [PosController::class, 'discount'])->middleware('perm:pos.edit');
+        Route::post('/orders/{id}/voucher', [PosController::class, 'voucher'])->middleware('perm:pos.edit');
         Route::post('/orders/{id}/tip', [PosController::class, 'tip'])->middleware('perm:pos.edit');
         Route::post('/orders/{id}/split', [PosController::class, 'split'])->middleware('perm:pos.edit');
         Route::post('/orders/{id}/merge', [PosController::class, 'merge'])->middleware('perm:pos.edit');

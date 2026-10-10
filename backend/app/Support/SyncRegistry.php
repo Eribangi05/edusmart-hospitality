@@ -27,6 +27,7 @@ class SyncRegistry
             'reservations' => [D\Reservation::class, 'rooms', ['rooms.view']],
             'folios' => [D\Folio::class, 'rooms', ['rooms.folio', 'rooms.view']],
             'folio_entries' => [D\FolioEntry::class, 'rooms', ['rooms.folio', 'rooms.view']],
+            'vouchers' => [D\Voucher::class, 'pos', ['pos.view']],
             'dining_tables' => [D\DiningTable::class, 'pos', ['pos.view']],
             'orders' => [D\Order::class, 'pos', ['pos.view']],
             'order_items' => [D\OrderItem::class, 'pos', ['pos.view']],

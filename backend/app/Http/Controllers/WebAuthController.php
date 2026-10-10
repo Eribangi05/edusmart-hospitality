@@ -44,7 +44,7 @@ class WebAuthController extends Controller
         $r->session()->regenerate();
         Audit::log('auth.web_login', 'user', $user->id, null, null, $user->tenant_id, $user->id);
 
-        return response()->json(['redirect' => $user->is_platform_admin ? '/admin' : '/app']);
+        return response()->json(['redirect' => $this->landing($user)]);
     }
 
     public function register(Request $r, TenantProvisioner $p)
@@ -83,6 +83,16 @@ class WebAuthController extends Controller
         }
 
         return response()->json(['redirect' => '/login']);
+    }
+
+    private function landing(User $user): string
+    {
+        if ($user->is_platform_admin) {
+            return '/admin';
+        }
+        $ws = \App\Support\Workspaces::for($user, $user->tenant?->enabledModules() ?? []);
+
+        return \App\Support\Workspaces::landing($ws, $user);
     }
 
     public function logout(Request $r)

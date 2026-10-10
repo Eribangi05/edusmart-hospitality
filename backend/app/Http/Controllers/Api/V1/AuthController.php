@@ -222,6 +222,7 @@ class AuthController extends Controller
             'modules' => $tenant->enabledModules(),
             'permissions' => $user->permissions(),
             'locale' => $user->locale ?? $tenant->default_locale,
+            'workspaces' => \App\Support\Workspaces::for($user, $tenant->enabledModules()),
             'settings' => $settings,
             'tax_rates' => TaxRate::where('is_active', true)->get(['id', 'key', 'name', 'rate_bp', 'kind', 'inclusive']),
             'payment_methods' => PaymentMethod::where('is_active', true)->orderBy('position')->get(['id', 'key', 'name', 'type']),

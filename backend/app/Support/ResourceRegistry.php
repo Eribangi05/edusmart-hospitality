@@ -65,6 +65,10 @@ class ResourceRegistry
                     'tax_rate_ids' => 'nullable|array', 'tax_rate_ids.*' => ['uuid', Rule::exists('tax_rates', 'id')->where('tenant_id', app(Tenancy::class)->id())],
                     'track_stock' => 'boolean', 'station' => 'in:kitchen,bar,none', 'options' => 'nullable|array', 'image_path' => 'nullable|string', 'is_active' => 'boolean', 'meta' => 'nullable|array'] + $p()],
 
+            'vouchers' => ['model' => D\Voucher::class, 'module' => 'pos', 'perm' => 'pos', 'search' => ['code', 'name'], 'filters' => ['is_active', 'kind'],
+                'rules' => fn () => ['code' => 'required|string|max:40|alpha_dash', 'name' => 'nullable|string|max:100', 'kind' => 'required|in:percent,amount', 'value' => 'required|integer|min:1',
+                    'min_total' => 'integer|min:0', 'valid_from' => 'nullable|date', 'valid_to' => 'nullable|date|after_or_equal:valid_from', 'max_uses' => 'nullable|integer|min:1', 'is_active' => 'boolean', 'meta' => 'nullable|array'] + $p()],
+
             // ---- rooms ----
             'room-types' => ['model' => D\RoomType::class, 'module' => 'rooms', 'perm' => 'rooms', 'search' => ['name', 'code'], 'filters' => ['property_id', 'is_active'],
                 'rules' => fn () => ['name' => 'required|string|max:100', 'code' => 'nullable|string|max:20', 'description' => 'nullable|string', 'base_price' => 'required|integer|min:0',

@@ -164,6 +164,41 @@ class PosService
         return $this->recalc($order);
     }
 
+    /** Promo codes: validated here, applied as an order discount (before tax). One code per order. */
+    public function applyVoucher(Order $order, string $code): Order
+    {
+        $this->ensureOpen($order);
+        $v = \App\Models\Domain\Voucher::where('code', strtoupper(trim($code)))->orWhere('code', trim($code))->first();
+        if (! $v || ! $v->is_active) {
+            throw new ApiError('voucher_invalid', 'This code is not valid.', 422);
+        }
+        if (($order->meta['voucher'] ?? null) === $v->code) {
+            return $order; // already applied to this order
+        }
+        $today = now()->toDateString();
+        if (($v->valid_from && $today < $v->valid_from->toDateString()) || ($v->valid_to && $today > $v->valid_to->toDateString())) {
+            throw new ApiError('voucher_expired', 'This code is outside its validity dates.', 422);
+        }
+        if ($v->max_uses !== null && $v->uses >= $v->max_uses) {
+            throw new ApiError('voucher_used_up', 'This code has been used the maximum number of times.', 422);
+        }
+        $gross = (int) OrderItem::where('order_id', $order->id)->whereNull('voided_at')->sum('line_total');
+        if ($gross < $v->min_total) {
+            throw new ApiError('voucher_min_total', 'Minimum order total for this code is '.number_format($v->min_total).' RWF.', 422);
+        }
+        $discount = $v->kind === 'percent' ? (int) round($gross * $v->value / 10000) : (int) $v->value;
+        DB::transaction(function () use ($order, $v, $discount, $gross) {
+            if (! empty($order->meta['voucher'])) { // replacing an earlier code releases it
+                \App\Models\Domain\Voucher::where('code', $order->meta['voucher'])->where('uses', '>', 0)->decrement('uses');
+            }
+            $v->increment('uses');
+            $order->forceFill(['discount' => min($discount, $gross), 'meta' => array_merge($order->meta ?? [], ['voucher' => $v->code])])->save();
+        });
+        Audit::log('order.voucher', 'order', $order->id, null, ['code' => $v->code, 'discount' => $order->discount]);
+
+        return $this->recalc($order);
+    }
+
     public function send(Order $order): array
     {
         $this->ensureOpen($order);
