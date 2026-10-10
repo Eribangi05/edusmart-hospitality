@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Api\V1\AdminController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\PosController;
+use App\Http\Controllers\Api\V1\ReportsController;
 use App\Http\Controllers\Api\V1\ResourceController;
 use App\Http\Controllers\Api\V1\RoomsController;
+use App\Http\Controllers\Api\V1\TourismController;
 use App\Support\ResourceRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +72,57 @@ Route::middleware(['auth:sanctum', 'tenant', 'throttle:240,1'])->group(function 
         Route::get('/shifts/current', [PosController::class, 'currentShift'])->middleware('perm:pos.view');
         Route::post('/shifts', [PosController::class, 'openShift'])->middleware('perm:pos.create');
         Route::post('/shifts/{id}/close', [PosController::class, 'closeShift'])->middleware('perm:pos.create');
+    });
+
+    // ---- Tourism: tours, activities, transfers, rentals, packages ----
+    Route::middleware('module:tourism')->group(function () {
+        Route::post('/tourism/quote', [TourismController::class, 'quote'])->middleware('perm:tourism.view');
+        Route::get('/tourism/departures', [TourismController::class, 'departures'])->middleware('perm:tourism.view');
+        Route::get('/tourism/departures/{id}/manifest', [TourismController::class, 'manifest'])->middleware('perm:tourism.view');
+        Route::get('/tourism/today', [TourismController::class, 'bookingsToday'])->middleware('perm:tourism.view');
+        Route::get('/bookings', [TourismController::class, 'index'])->middleware('perm:tourism.view');
+        Route::get('/bookings/{id}', [TourismController::class, 'show'])->middleware('perm:tourism.view');
+        Route::post('/bookings', [TourismController::class, 'store'])->middleware('perm:tourism.create');
+        Route::patch('/bookings/{id}', [TourismController::class, 'update'])->middleware('perm:tourism.edit');
+        Route::post('/bookings/{id}/status/{to}', [TourismController::class, 'transition'])->whereIn('to', ['confirmed', 'in_progress', 'completed', 'cancelled', 'no_show'])->middleware('perm:tourism.edit');
+        Route::post('/bookings/{id}/assign', [TourismController::class, 'assign'])->middleware('perm:tourism.assign');
+        Route::delete('/bookings/{id}/assign/{resourceId}', [TourismController::class, 'unassign'])->middleware('perm:tourism.assign');
+        Route::post('/bookings/{id}/payments', [TourismController::class, 'pay'])->middleware('perm:tourism.create');
+    });
+
+    // ---- Inventory ----
+    Route::middleware('module:inventory')->group(function () {
+        Route::get('/stock', [OperationsController::class, 'stock'])->middleware('perm:inventory.view');
+        Route::get('/stock-movements', [OperationsController::class, 'movements'])->middleware('perm:inventory.view');
+        Route::post('/stock/adjust', [OperationsController::class, 'adjust'])->middleware('perm:inventory.adjust');
+        Route::post('/stock/stocktake', [OperationsController::class, 'stocktake'])->middleware('perm:inventory.stocktake');
+        Route::get('/purchase-orders', [OperationsController::class, 'purchaseOrders'])->middleware('perm:inventory.view');
+        Route::post('/purchase-orders', [OperationsController::class, 'storePurchaseOrder'])->middleware('perm:inventory.create');
+        Route::post('/purchase-orders/{id}/receive', [OperationsController::class, 'receive'])->middleware('perm:inventory.receive');
+    });
+
+    // ---- Staff ----
+    Route::middleware('module:staff')->group(function () {
+        Route::post('/attendance', [OperationsController::class, 'clock']); // any employee may clock themselves
+        Route::post('/my/leave-requests', [OperationsController::class, 'requestLeave']);
+        Route::get('/attendance', [OperationsController::class, 'attendance'])->middleware('perm:staff.attendance_manage');
+        Route::post('/leave-requests/{id}/decide', [OperationsController::class, 'decideLeave'])->middleware('perm:staff.roster');
+        Route::get('/payroll', [OperationsController::class, 'payroll'])->middleware('perm:staff.payroll_export');
+    });
+
+    // ---- Housekeeping & maintenance ----
+    Route::middleware('module:housekeeping')->group(function () {
+        Route::get('/my-tasks', [OperationsController::class, 'myTasks'])->middleware('perm:housekeeping.view');
+        Route::post('/tasks/{id}/{action}', [OperationsController::class, 'taskAction'])->whereIn('action', ['start', 'complete', 'inspect', 'assign'])->middleware('perm:housekeeping.edit,housekeeping.inspect,housekeeping.assign');
+    });
+
+    // ---- Reports & finance ----
+    Route::get('/reports/dashboard', [ReportsController::class, 'dashboard'])->middleware('perm:finance.view,rooms.view,pos.view,tourism.view');
+    Route::middleware(['module:finance', 'perm:finance.view'])->group(function () {
+        Route::get('/reports/sales', [ReportsController::class, 'sales']);
+        Route::get('/reports/occupancy', [ReportsController::class, 'occupancy']);
+        Route::get('/reports/cash', [ReportsController::class, 'cash']);
+        Route::get('/reports/profit', [ReportsController::class, 'profit']);
     });
 
     // Tenant administration

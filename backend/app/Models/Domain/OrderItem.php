@@ -8,5 +8,7 @@ class OrderItem extends TenantModel
 {
     protected $table = 'order_items';
 
+    protected array $datetimes = ['voided_at'];
+
     protected array $json = ['modifiers'];
 }

@@ -24,6 +24,9 @@ abstract class TenantModel extends Model
     /** Columns cast to date (Y-m-d). */
     protected array $dates = [];
 
+    /** Columns cast to datetime. */
+    protected array $datetimes = [];
+
     protected function casts(): array
     {
         $c = ['meta' => 'array'];
@@ -32,6 +35,10 @@ abstract class TenantModel extends Model
         }
         foreach ($this->dates as $col) {
             $c[$col] = 'date:Y-m-d';
+        }
+
+        foreach ($this->datetimes as $col) {
+            $c[$col] = 'datetime';
         }
 
         return $c;
