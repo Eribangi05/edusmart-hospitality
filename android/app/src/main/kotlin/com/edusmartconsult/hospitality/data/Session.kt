@@ -39,7 +39,7 @@ class Session(context: Context) : AuthStore {
 
     override var baseUrl: String
         get() = plain.getString("base_url", null) ?: BuildConfig.API_BASE_URL
-        set(v) = plain.edit().putString("base_url", if (v.endsWith("/")) v else "$v/").apply()
+        set(v) = plain.edit().putString("base_url", normalizeBaseUrl(v)).apply()
 
     var contextJson: String?
         get() = plain.getString("ctx", null)
@@ -64,4 +64,14 @@ class Session(context: Context) : AuthStore {
         secure.edit().clear().apply()
         plain.edit().remove("ctx").remove("cursors").remove("last_sync").apply()
     }
+}
+
+/** Accepts "https://host", "https://host/" or the full API url and returns ".../api/v1/". */
+fun normalizeBaseUrl(input: String): String {
+    var u = input.trim()
+    if (u.isEmpty()) return u
+    if (!u.startsWith("http://") && !u.startsWith("https://")) u = "https://$u"
+    u = u.trimEnd('/')
+    if (!u.contains("/api/")) u += "/api/v1"
+    return "$u/"
 }

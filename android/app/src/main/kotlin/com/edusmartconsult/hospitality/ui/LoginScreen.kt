@@ -74,6 +74,7 @@ fun LoginScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     busy = true; error = null
+                    if (server.isNotBlank()) container.session.baseUrl = server
                     scope.launch {
                         try {
                             if (challenge == null) {
@@ -90,8 +91,12 @@ fun LoginScreen() {
                     }
                 },
             )
-            if (BuildConfig.DEBUG) {
-                Field(server, { server = it; container.session.baseUrl = it }, stringResource(R.string.server_url))
+            var showServer by remember { mutableStateOf(BuildConfig.DEBUG) }
+            if (!showServer) {
+                androidx.compose.material3.TextButton(onClick = { showServer = true }) { Text(stringResource(R.string.server_url)) }
+            } else {
+                Field(server, { server = it }, stringResource(R.string.server_url))
+                Text(stringResource(R.string.server_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

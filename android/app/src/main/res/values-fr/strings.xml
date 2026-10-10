@@ -165,4 +165,5 @@
     <string name="promo_code">Code promo</string>
     <string name="apply">Appliquer</string>
     <string name="promo_applied">Réduction appliquée</string>
+    <string name="server_hint">Utilisez l\'adresse HTTPS de votre serveur Edusmart Hospitality, par ex. https://hospitality.votresociete.com</string>
 </resources>

@@ -27,3 +27,11 @@ class IdAndFormatTest {
         assertTrue(l.startsWith("2 x Primus")); assertTrue(l.endsWith("RWF 3,000"))
     }
 }
+
+class BaseUrlTest {
+    @org.junit.Test fun normalizesServerAddresses() {
+        org.junit.Assert.assertEquals("https://h.example.com/api/v1/", com.edusmartconsult.hospitality.data.normalizeBaseUrl("h.example.com"))
+        org.junit.Assert.assertEquals("https://h.example.com/api/v1/", com.edusmartconsult.hospitality.data.normalizeBaseUrl(" https://h.example.com/ "))
+        org.junit.Assert.assertEquals("https://h.example.com/api/v1/", com.edusmartconsult.hospitality.data.normalizeBaseUrl("https://h.example.com/api/v1"))
+    }
+}

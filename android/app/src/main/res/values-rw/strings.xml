@@ -165,4 +165,5 @@
     <string name="promo_code">Kode y\'igabanywa</string>
     <string name="apply">Shyiraho</string>
     <string name="promo_applied">Igabanywa ryashyizweho</string>
+    <string name="server_hint">Shyiramo aderesi ya HTTPS ya seriveri yawe ya Edusmart Hospitality, urugero https://hospitality.ikigocyawe.com</string>
 </resources>
