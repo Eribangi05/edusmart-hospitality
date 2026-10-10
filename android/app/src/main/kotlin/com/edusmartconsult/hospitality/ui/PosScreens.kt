@@ -170,12 +170,53 @@ fun PosScreen(onOrders: () -> Unit, onOpen: (String) -> Unit) {
     if (showCart && !(false)) ModalBottomSheet(onDismissRequest = { showCart = false }) { cartPanel() }
 }
 
+/** Cash shift (float / cash-up). Needs a connection: the server owns the shift record. */
+@Composable
+fun ShiftCard() {
+    val container = LocalContainer.current
+    val c = ctx()
+    val scope = rememberCoroutineScope()
+    var shift by remember { mutableStateOf<JsonObject?>(null) }
+    var loaded by remember { mutableStateOf(false) }
+    var dialog by remember { mutableStateOf<String?>(null) }
+    var amount by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf<String?>(null) }
+    val offline = stringResource(R.string.offline_required)
+    suspend fun load() { runCatching { container.api.get("shifts/current").asObject().obj("data") }.onSuccess { shift = it; loaded = true } }
+    LaunchedEffect(Unit) { load() }
+    if (!loaded || c?.can("pos.create") != true) return
+    ListCard(modifier = Modifier.padding(12.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            Text(if (shift == null) stringResource(R.string.no_shift) else stringResource(R.string.shift) + " · " + money(shift!!.long("opening_float")), fontWeight = FontWeight.SemiBold)
+            if (shift == null) OutlinedButton(onClick = { amount = ""; dialog = "open" }) { Text(stringResource(R.string.open_shift)) }
+            else OutlinedButton(onClick = { amount = ""; dialog = "close" }) { Text(stringResource(R.string.close_shift)) }
+        }
+        message?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+    }
+    dialog?.let { kind ->
+        AlertDialog(onDismissRequest = { dialog = null },
+            title = { Text(if (kind == "open") stringResource(R.string.open_shift) else stringResource(R.string.close_shift)) },
+            text = { Field(amount, { amount = it.filter(Char::isDigit) }, stringResource(if (kind == "open") R.string.opening_float else R.string.counted_cash), number = true) },
+            confirmButton = { TextButton(enabled = amount.isNotBlank(), onClick = {
+                scope.launch {
+                    try {
+                        if (kind == "open") container.api.post("shifts", com.edusmartconsult.hospitality.core.obj { put("opening_float", amount.toLong()); put("device_id", container.session.deviceId) })
+                        else container.api.post("shifts/${shift!!.str("id")}/close", com.edusmartconsult.hospitality.core.obj { put("counted_cash", amount.toLong()) })
+                        message = null; dialog = null; load()
+                    } catch (e: ApiException) { message = if (e.isOffline) offline else e.message; dialog = null }
+                }
+            }) { Text(stringResource(R.string.confirm_ok)) } },
+            dismissButton = { TextButton(onClick = { dialog = null }) { Text(stringResource(R.string.cancel)) } })
+    }
+}
+
 @Composable
 fun OrdersScreen(onOpen: (String) -> Unit) {
     val orders by rememberDocs("orders") { l -> l.sortedByDescending { it.str("created_at") ?: "" } }
     var filter by remember { mutableStateOf("open") }
     val shown = orders.filter { when (filter) { "open" -> it.str("status") in setOf("open", "sent"); "paid" -> it.str("status") == "paid"; else -> true } }
     Column(Modifier.fillMaxSize()) {
+        ShiftCard()
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("open" to R.string.status_open, "paid" to R.string.status_paid, "all" to R.string.no_table).forEach { (k, res) ->
                 FilterChip(selected = filter == k, onClick = { filter = k }, label = { Text(if (k == "all") "All" else stringResource(res)) })

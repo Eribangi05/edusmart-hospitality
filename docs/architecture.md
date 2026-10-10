@@ -1,4 +1,8 @@
-# Architecture (Phase 0)
+# Architecture
+
+> Implementation notes (see README for current status): local DB encryption (SQLCipher) and FCM push described below are **planned, not built**; the app polls via WorkManager. Tokens are Sanctum personal access tokens (15 min) with an app-level rotating refresh token. The generated API contract is `api-spec/openapi.json`. The "shop" module reuses POS + inventory.
+
+(Original Phase 0 design follows.)
 
 ## 1. System overview
 

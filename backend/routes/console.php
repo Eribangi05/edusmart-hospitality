@@ -4,6 +4,7 @@ use App\Models\Domain\Payment;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Billing\BillingService;
+use App\Services\DemoData;
 use App\Services\Payments\PaymentService;
 use App\Services\Rooms\RoomService;
 use App\Services\TenantEraser;
@@ -11,9 +12,11 @@ use App\Support\Tenancy;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Str;
 
 Artisan::command('rooms:night-audit {--date=}', function () {
-    $date = $this->option('date') ? Carbon::parse($this->option('date')) : null;
+    // Run in the small hours (scheduler: 02:00) it closes the business day that just ended; run in the afternoon it closes today.
+    $date = $this->option('date') ? Carbon::parse($this->option('date')) : (now()->hour < 12 ? now()->subDay()->startOfDay() : now()->startOfDay());
     foreach (Tenant::whereIn('status', ['trial', 'active', 'grace'])->get() as $t) {
         if (! in_array('rooms', $t->enabledModules(), true)) {
             continue;
@@ -59,6 +62,12 @@ Artisan::command('tenant:delete {slug} {--force}', function (string $slug) {
     }
     $this->info(json_encode(app(TenantEraser::class)->erase($t)));
 })->purpose('Permanently erase a company and all its data');
+
+Artisan::command('demo:seed {--email=demo@edusmart.test} {--password=}', function () {
+    $password = $this->option('password') ?: Str::password(14, symbols: false);
+    $t = app(DemoData::class)->create($this->option('email'), $password);
+    $this->info("Demo company '{$t->name}' created. Log in at /login as {$this->option('email')} / {$password}");
+})->purpose('Create a demo lodge, restaurant and tour operator with sample data');
 
 Schedule::command('rooms:night-audit')->dailyAt('02:00')->timezone('Africa/Kigali');
 Schedule::command('billing:run')->dailyAt('03:00')->timezone('Africa/Kigali');

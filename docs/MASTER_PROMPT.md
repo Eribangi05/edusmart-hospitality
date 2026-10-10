@@ -1,3 +1,5 @@
+> **Status:** this prompt was executed; the platform is built. See the repository README for what exists and what is still open.
+
 # Hospitality Platform: Android App + Backend + Web Management Console
 ## Master Prompt for Claude Code
 

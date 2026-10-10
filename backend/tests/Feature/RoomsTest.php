@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -102,5 +104,18 @@ class RoomsTest extends TestCase
         $this->postJson("/api/v1/folio-entries/{$e['id']}/void", [], $h)->assertStatus(422);
         $this->postJson("/api/v1/folio-entries/{$e['id']}/void", ['reason' => 'entered twice'], $h)->assertOk()->assertJsonPath('balance', 0);
         $this->postJson("/api/v1/folio-entries/{$e['id']}/void", ['reason' => 'again'], $h)->assertStatus(409);
+    }
+
+    public function test_scheduled_night_audit_in_the_small_hours_charges_the_night_that_just_ended(): void
+    {
+        [$h, $type, $rooms] = $this->setup1();
+        $res = $this->postJson('/api/v1/reservations', ['room_type_id' => $type['id'], 'room_id' => $rooms[0]['id'], 'check_in' => '2027-01-11', 'check_out' => '2027-01-12', 'guest' => ['name' => 'A', 'id_number' => '1']], $h)->assertCreated()->json('data');
+        $this->postJson("/api/v1/reservations/{$res['id']}/check-in", [], $h)->assertOk();
+        Carbon::setTestNow('2027-01-12 02:00:00'); // what the scheduler sees in Kigali
+        Artisan::call('rooms:night-audit');
+        Carbon::setTestNow();
+        $folio = $this->getJson("/api/v1/reservations/{$res['id']}", $h)->json('folio');
+        $this->assertSame(118000, $folio['balance']);
+        $this->assertSame('2027-01-11', $folio['entries'][0]['business_date']);
     }
 }
