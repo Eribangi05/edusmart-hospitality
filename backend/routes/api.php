@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\PlatformController;
 use App\Http\Controllers\Api\V1\PosController;
+use App\Http\Controllers\Api\V1\PrivacyController;
 use App\Http\Controllers\Api\V1\ReportsController;
 use App\Http\Controllers\Api\V1\ResourceController;
 use App\Http\Controllers\Api\V1\RoomsController;
@@ -23,6 +24,8 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/2fa', [AuthController::class, 'twoFactor']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+    Route::post('/auth/forgot', [AuthController::class, 'forgot']);
+    Route::post('/auth/reset', [AuthController::class, 'reset']);
 });
 
 Route::post('/webhooks/momo/{token}', [WebhookController::class, 'momo'])->middleware('throttle:120,1');
@@ -46,11 +49,16 @@ Route::middleware(['auth:sanctum', 'platform', 'throttle:600,1'])->prefix('admin
     Route::post('/plans', [PlatformController::class, 'savePlan']);
     Route::patch('/plans/{id}', [PlatformController::class, 'savePlan']);
     Route::get('/audit', [PlatformController::class, 'audit']);
+    Route::delete('/tenants/{id}', [PlatformController::class, 'erase']);
 });
 
 Route::middleware(['auth:sanctum', 'tenant', 'throttle:1200,1'])->group(function () {
     Route::get('/sync/pull', [SyncController::class, 'pull']);
     Route::post('/sync/push', [SyncController::class, 'push']);
+
+    // ---- Privacy: data portability and erasure request (owner) ----
+    Route::get('/data-export', [PrivacyController::class, 'export'])->middleware('perm:core.settings');
+    Route::post('/tenant/deletion-request', [PrivacyController::class, 'requestDeletion'])->middleware('perm:core.settings');
 
     // ---- Subscription billing (owner) ----
     Route::get('/billing', [BillingController::class, 'show'])->middleware('perm:core.settings');

@@ -1,0 +1,307 @@
+{
+  "securitySchemes": {
+    "bearer": {
+      "type": "http",
+      "scheme": "bearer"
+    }
+  },
+  "responses": {
+    "Error": {
+      "description": "Error envelope",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/Error"
+          }
+        }
+      }
+    }
+  },
+  "schemas": {
+    "Error": {
+      "type": "object",
+      "required": [
+        "error"
+      ],
+      "properties": {
+        "error": {
+          "type": "object",
+          "required": [
+            "code",
+            "message"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "examples": [
+                "device_revoked",
+                "validation_failed",
+                "forbidden",
+                "module_disabled",
+                "subscription_suspended"
+              ]
+            },
+            "message": {
+              "type": "string"
+            },
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "Money": {
+      "type": "object",
+      "required": [
+        "amount",
+        "currency"
+      ],
+      "properties": {
+        "amount": {
+          "type": "integer",
+          "description": "Whole units; RWF has no minor unit"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "RWF"
+          ]
+        }
+      }
+    },
+    "LoginRequest": {
+      "type": "object",
+      "required": [
+        "email",
+        "password",
+        "device"
+      ],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "type": "string"
+        },
+        "device": {
+          "type": "object",
+          "required": [
+            "id",
+            "name",
+            "platform",
+            "app_version"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": "string"
+            },
+            "platform": {
+              "type": "string",
+              "enum": [
+                "android",
+                "web"
+              ]
+            },
+            "app_version": {
+              "type": "string"
+            },
+            "push_token": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "TokenPair": {
+      "type": "object",
+      "required": [
+        "access_token",
+        "refresh_token",
+        "expires_in"
+      ],
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        },
+        "expires_in": {
+          "type": "integer"
+        }
+      }
+    },
+    "TwoFactorChallenge": {
+      "type": "object",
+      "required": [
+        "challenge_id"
+      ],
+      "properties": {
+        "challenge_id": {
+          "type": "string"
+        }
+      }
+    },
+    "MeContext": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "object"
+        },
+        "tenant": {
+          "type": "object"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "e.g. rooms.view, pos.void"
+        },
+        "locale": {
+          "type": "string",
+          "enum": [
+            "en",
+            "fr",
+            "rw"
+          ]
+        }
+      }
+    },
+    "SyncPushItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "entity",
+        "op",
+        "payload",
+        "idempotency_key"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entity": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "create",
+            "update",
+            "void"
+          ]
+        },
+        "base_version": {
+          "type": "integer"
+        },
+        "idempotency_key": {
+          "type": "string"
+        },
+        "client_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    "SyncPushRequest": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/components/schemas/SyncPushItem"
+          }
+        }
+      }
+    },
+    "SyncPushResult": {
+      "type": "object",
+      "required": [
+        "id",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "applied",
+            "duplicate",
+            "conflict",
+            "rejected"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "server_version": {
+          "type": "integer"
+        }
+      }
+    },
+    "SyncPushResponse": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/SyncPushResult"
+          }
+        }
+      }
+    },
+    "SyncPullResponse": {
+      "type": "object",
+      "properties": {
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "tombstones": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "next_cursor": {
+          "type": "string"
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

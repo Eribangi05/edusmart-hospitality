@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiError;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Device;
@@ -11,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Audit;
 use App\Services\Billing\BillingService;
+use App\Services\TenantEraser;
 use App\Support\Modules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -96,6 +98,19 @@ class PlatformController extends Controller
         $token = $owner->createToken('impersonation', ['*'], now()->addMinutes(30));
 
         return response()->json(['access_token' => $token->plainTextToken, 'expires_in' => 1800, 'tenant' => $t->only(['id', 'name', 'slug'])]);
+    }
+
+    /** Irreversible. Requires the tenant slug typed back so a mis-click cannot erase a company. */
+    public function erase(Request $r, string $id, TenantEraser $eraser)
+    {
+        $t = Tenant::withTrashed()->findOrFail($id);
+        $r->validate(['confirm_slug' => 'required|string']);
+        if ($r->input('confirm_slug') !== $t->slug) {
+            throw new ApiError('confirmation_mismatch', 'Type the tenant slug exactly to confirm.', 422);
+        }
+        $result = $eraser->erase($t);
+
+        return response()->json(['data' => $result]);
     }
 
     public function plans()

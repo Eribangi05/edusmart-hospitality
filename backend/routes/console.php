@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\Billing\BillingService;
 use App\Services\Payments\PaymentService;
 use App\Services\Rooms\RoomService;
+use App\Services\TenantEraser;
 use App\Support\Tenancy;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +48,17 @@ Artisan::command('platform:create-admin {email} {name} {password}', function (st
     $u->forceFill(['is_platform_admin' => true, 'email_verified_at' => now()])->save();
     $this->info('Platform admin created. Enable 2FA (POST /api/v1/auth/2fa/setup) before using the console.');
 })->purpose('Create a platform super-admin');
+
+Artisan::command('tenant:delete {slug} {--force}', function (string $slug) {
+    $t = Tenant::withTrashed()->where('slug', $slug)->first();
+    if (! $t) {
+        return $this->error('No such tenant');
+    }
+    if (! $this->option('force') && ! $this->confirm("Permanently erase {$t->name} and ALL its data?")) {
+        return;
+    }
+    $this->info(json_encode(app(TenantEraser::class)->erase($t)));
+})->purpose('Permanently erase a company and all its data');
 
 Schedule::command('rooms:night-audit')->dailyAt('02:00')->timezone('Africa/Kigali');
 Schedule::command('billing:run')->dailyAt('03:00')->timezone('Africa/Kigali');

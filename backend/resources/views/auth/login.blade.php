@@ -10,6 +10,7 @@
     <label class="block text-sm font-medium">Password<input x-model="password" type="password" required autocomplete="current-password" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
     <label x-show="twoFactor" class="block text-sm font-medium">Authenticator code<input x-model="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
     <button :disabled="busy" class="w-full rounded-lg bg-emerald-600 py-2.5 font-medium text-white hover:bg-emerald-700 disabled:opacity-60">Log in</button>
+    <p class="text-center text-sm"><a class="text-slate-600 underline" href="/forgot-password">Forgot your password?</a></p>
     <p class="text-center text-sm text-slate-600">New here? <a class="text-emerald-700 underline" href="/register">Create a company</a></p>
   </form>
 </main>

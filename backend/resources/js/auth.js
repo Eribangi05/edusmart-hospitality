@@ -41,5 +41,26 @@ window.registerForm = () => ({
     },
 });
 
+window.forgotForm = () => ({
+    email: '', done: false, error: '', busy: false,
+    async submit() {
+        this.busy = true; this.error = '';
+        const { status, data } = await post('/forgot-password', { email: this.email });
+        this.busy = false;
+        if (status === 200) this.done = true; else this.error = message(data);
+    },
+});
+
+window.resetForm = (token, email) => ({
+    token, email, password: '', error: '', busy: false,
+    async submit() {
+        this.busy = true; this.error = '';
+        const { data } = await post('/reset-password', { token: this.token, email: this.email, password: this.password });
+        this.busy = false;
+        if (data.redirect) { location.href = data.redirect; return; }
+        this.error = message(data);
+    },
+});
+
 window.Alpine = Alpine;
 Alpine.start();

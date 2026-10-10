@@ -21,6 +21,8 @@ use App\Support\Totp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -63,11 +65,17 @@ class AuthController extends Controller
     public function login(Request $r)
     {
         $d = $r->validate(['email' => 'required|email', 'password' => 'required|string'] + $this->deviceRules());
+        $key = 'login:'.strtolower($d['email']).'|'.$r->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw new ApiError('too_many_attempts', 'Too many attempts. Try again in '.RateLimiter::availableIn($key).' seconds.', 429);
+        }
         $user = User::where('email', $d['email'])->first();
         if (! $user || ! $user->is_active || ! Hash::check($d['password'], $user->password)) {
+            RateLimiter::hit($key, 300);
             Audit::log('auth.login_failed', 'user', null, null, ['email' => $d['email']]);
             throw new ApiError('invalid_credentials', 'Invalid email or password.', 422);
         }
+        RateLimiter::clear($key);
         if ($user->hasTwoFactor()) {
             $c = TwoFactorChallenge::create(['user_id' => $user->id, 'device' => $d['device'], 'expires_at' => now()->addMinutes(5)]);
 
@@ -75,6 +83,32 @@ class AuthController extends Controller
         }
 
         return response()->json($this->issue($user, $d['device']));
+    }
+
+    /** Always answers 200 so the endpoint cannot be used to discover which emails have accounts. */
+    public function forgot(Request $r)
+    {
+        $d = $r->validate(['email' => 'required|email']);
+        Password::sendResetLink(['email' => $d['email']]);
+
+        return response()->json(['message' => 'If that email has an account, a reset link is on its way.']);
+    }
+
+    public function reset(Request $r)
+    {
+        $d = $r->validate(['email' => 'required|email', 'token' => 'required|string', 'password' => 'required|string|min:10']);
+        $status = Password::reset($d, function (User $user, string $password) {
+            $user->forceFill(['password' => $password])->save();
+            // a reset signs the user out everywhere
+            DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->delete();
+            DB::table('refresh_tokens')->where('user_id', $user->id)->delete();
+            Audit::log('auth.password_reset', 'user', $user->id, null, null, $user->tenant_id, $user->id);
+        });
+        if ($status !== Password::PASSWORD_RESET) {
+            throw new ApiError('invalid_reset_token', 'This reset link is invalid or has expired.', 422);
+        }
+
+        return response()->json(['message' => 'Password updated. You can sign in now.']);
     }
 
     public function twoFactor(Request $r)

@@ -6,6 +6,7 @@ use App\Services\Payments\FakeMomo;
 use App\Services\Payments\MomoGateway;
 use App\Services\Payments\MtnMomo;
 use App\Support\Tenancy;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        ResetPassword::createUrlUsing(fn ($user, string $token) => url('/reset-password/'.$token).'?email='.urlencode($user->getEmailForPasswordReset()));
     }
 }

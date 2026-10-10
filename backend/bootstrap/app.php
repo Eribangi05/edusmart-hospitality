@@ -5,6 +5,7 @@ use App\Http\Middleware\CheckModule;
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\PlatformAdmin;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        $middleware->append(SecurityHeaders::class);
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'perm' => CheckPermission::class,
