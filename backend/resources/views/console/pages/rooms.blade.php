@@ -39,7 +39,7 @@
   <div x-data="reservationsPage()">
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <h1 class="text-2xl font-bold" x-text="$store.app.t('reservations')"></h1>
-      <input class="input w-56" :placeholder="$store.app.t('search')" x-model.debounce.300ms="q" @input="load()">
+      <input class="input w-56" :placeholder="$store.app.t('search')" x-model="q" @input.debounce.300ms="load()">
       <select class="input w-auto" x-model="status" @change="load()"><option value="">All</option><template x-for="s in ['pending','confirmed','checked_in','checked_out','cancelled','no_show']"><option :value="s" x-text="s.replace('_',' ')"></option></template></select>
       <div class="flex-1"></div>
       <button class="btn btn-primary" @click="newForm()" x-show="$store.app.can('rooms.create')">+ New reservation</button>
@@ -97,7 +97,7 @@
             <div x-show="view.data.status === 'checked_in'"><button class="btn btn-primary" @click="act('check-out')" x-show="$store.app.can('rooms.check_out')" x-text="$store.app.t('check_out')"></button></div>
             <template x-if="view.folio">
               <div class="card space-y-3">
-                <div class="flex items-center justify-between"><h3 class="font-semibold">Folio <span class="text-slate-400" x-text="view.folio.number"></span></h3><p class="text-sm"><span x-text="$store.app.t('balance')"></span>: <b x-text="money(view.folio.balance)"></b></p></div>
+                <div class="flex items-center justify-between"><h3 class="font-semibold">Folio <span class="text-slate-400" x-text="view.folio.number"></span></h3><div class="text-right text-sm"><p><span x-text="$store.app.t('balance')"></span>: <b x-text="money(view.folio.balance)"></b></p><button class="text-xs text-emerald-700 underline" @click="printInvoice()" x-text="$store.app.t('print_invoice')"></button></div></div>
                 <table class="min-w-full text-sm"><tbody class="divide-y divide-slate-100">
                   <template x-for="e in view.folio.entries" :key="e.id"><tr :class="e.voided_at ? 'text-slate-300 line-through' : ''">
                     <td class="py-1" x-text="e.description"></td><td class="py-1 text-right" x-text="money(e.amount)"></td>
@@ -114,6 +114,18 @@
         </template>
       </div>
     </div>
+  </div>
+</template>
+@endverbatim
+
+@verbatim
+<template x-if="$store.app.route.page === 'rooms.timeline'">
+  <div x-data="timeline()" @changed.window="load()" @new-res.window="$nextTick(() => {})">
+    <div class="mb-3 flex flex-wrap items-center gap-3"><h1 class="text-2xl font-bold" x-text="$store.app.t('timeline')"></h1><button class="btn btn-primary btn-sm ml-auto" @click="$dispatch('new-res')">+ New reservation</button></div>
+@endverbatim
+@include('partials.timeline')
+@include('partials.res-modals')
+@verbatim
   </div>
 </template>
 @endverbatim

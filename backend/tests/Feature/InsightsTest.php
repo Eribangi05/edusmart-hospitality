@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Support\Totp;
 use Tests\TestCase;
 
 class InsightsTest extends TestCase
@@ -20,7 +19,7 @@ class InsightsTest extends TestCase
     {
         [$h] = $this->co();
         $item = $this->postJson('/api/v1/catalog-items', ['kind' => 'menu', 'name' => 'Fish', 'price' => 10000], $h)->json('data');
-        $this->postJson('/api/v1/vouchers', ['code' => 'WELCOME10', 'kind' => 'percent', 'value' => 1000, 'max_uses' => 1], $h)->assertCreated();
+        $this->postJson('/api/v1/vouchers', ['code' => 'WELCOME10', 'kind' => 'percent', 'value' => 10, 'max_uses' => 1], $h)->assertCreated();
         $this->postJson('/api/v1/vouchers', ['code' => 'BIG', 'kind' => 'amount', 'value' => 2000, 'min_total' => 50000], $h)->assertCreated();
         $this->postJson('/api/v1/vouchers', ['code' => 'OLD', 'kind' => 'amount', 'value' => 500, 'valid_to' => '2020-01-01'], $h)->assertCreated();
         $o = $this->postJson('/api/v1/orders', ['items' => [['catalog_item_id' => $item['id']]]], $h)->json('data');

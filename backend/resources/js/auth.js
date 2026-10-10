@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import './shared/theme.js';
 
 const token = () => document.querySelector('meta[name="csrf-token"]').content;
 

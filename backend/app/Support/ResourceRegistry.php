@@ -66,7 +66,7 @@ class ResourceRegistry
                     'track_stock' => 'boolean', 'station' => 'in:kitchen,bar,none', 'options' => 'nullable|array', 'image_path' => 'nullable|string', 'is_active' => 'boolean', 'meta' => 'nullable|array'] + $p()],
 
             'vouchers' => ['model' => D\Voucher::class, 'module' => 'pos', 'perm' => 'pos', 'search' => ['code', 'name'], 'filters' => ['is_active', 'kind'],
-                'rules' => fn () => ['code' => 'required|string|max:40|alpha_dash', 'name' => 'nullable|string|max:100', 'kind' => 'required|in:percent,amount', 'value' => 'required|integer|min:1',
+                'rules' => fn () => ['code' => 'required|string|max:40|alpha_dash', 'name' => 'nullable|string|max:100', 'kind' => 'required|in:percent,amount', 'value' => 'required|integer|min:1|max:100000000',
                     'min_total' => 'integer|min:0', 'valid_from' => 'nullable|date', 'valid_to' => 'nullable|date|after_or_equal:valid_from', 'max_uses' => 'nullable|integer|min:1', 'is_active' => 'boolean', 'meta' => 'nullable|array'] + $p()],
 
             // ---- rooms ----

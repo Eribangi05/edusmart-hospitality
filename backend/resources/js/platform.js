@@ -1,8 +1,9 @@
 import Alpine from 'alpinejs';
 import { api } from './console/api.js';
+import './shared/theme.js';
 
 window.platform = () => ({
-    tab: 'overview', metrics: null, tenants: [], tenant: null, plans: [], audit: [], q: '', status: '', error: '', needs2fa: false, secret: '', uri: '', code: '', planId: '', reason: '',
+    tab: 'overview', contacts: [], metrics: null, tenants: [], tenant: null, plans: [], audit: [], q: '', status: '', error: '', needs2fa: false, secret: '', uri: '', code: '', planId: '', reason: '',
     async init() {
         try { await this.load(); } catch (e) { if (e.code === 'two_factor_required') this.needs2fa = true; else this.error = e.message; }
     },
@@ -10,7 +11,8 @@ window.platform = () => ({
         this.metrics = (await api.get('/admin/metrics')).data;
         await Promise.all([this.loadTenants(), this.loadPlans()]);
     },
-    async go(t) { this.tab = t; if (t === 'audit') this.audit = (await api.get('/admin/audit')).data; },
+    async go(t) { this.tab = t; if (t === 'audit') this.audit = (await api.get('/admin/audit')).data; if (t === 'contacts') this.contacts = (await api.get('/admin/contacts')).data; },
+    async handled(m) { await api.post(`/admin/contacts/${m.id}/handled`); this.contacts = (await api.get('/admin/contacts')).data; },
     cards() { const m = this.metrics; return m ? [['Companies', m.tenants_total], ['Active', m.tenants.active || 0], ['On trial', m.tenants.trial || 0], ['Suspended', m.tenants.suspended || 0], ['MRR (RWF)', Number(m.mrr).toLocaleString()], ['Collected (RWF)', Number(m.revenue_collected).toLocaleString()], ['Users', m.users], ['Signups 30d', m.signups_30d]] : []; },
     async loadTenants() { this.tenants = (await api.get('/admin/tenants', { q: this.q, status: this.status })).data; },
     async loadPlans() { this.plans = (await api.get('/admin/plans')).data; },

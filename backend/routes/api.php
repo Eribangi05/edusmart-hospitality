@@ -50,6 +50,8 @@ Route::middleware(['auth:sanctum', 'platform', 'throttle:600,1'])->prefix('admin
     Route::post('/plans', [PlatformController::class, 'savePlan']);
     Route::patch('/plans/{id}', [PlatformController::class, 'savePlan']);
     Route::get('/audit', [PlatformController::class, 'audit']);
+    Route::get('/contacts', [PlatformController::class, 'contacts']);
+    Route::post('/contacts/{id}/handled', [PlatformController::class, 'handleContact']);
     Route::delete('/tenants/{id}', [PlatformController::class, 'erase']);
 });
 
@@ -65,6 +67,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'throttle:1200,1'])->group(function
     Route::get('/reports/trends', [InsightsController::class, 'trends'])->middleware('perm:finance.view,rooms.view,pos.view,tourism.view');
     Route::get('/desk', [InsightsController::class, 'desk'])->middleware('module:rooms')->middleware('perm:rooms.view');
     Route::get('/rooms/timeline', [InsightsController::class, 'timeline'])->middleware('module:rooms')->middleware('perm:rooms.view');
+    Route::get('/my-trips', [InsightsController::class, 'myTrips'])->middleware('module:tourism');
     Route::get('/guests/{id}/profile', [InsightsController::class, 'guestProfile'])->middleware('perm:rooms.view,tourism.view');
 
     // ---- Privacy: data portability and erasure request (owner) ----

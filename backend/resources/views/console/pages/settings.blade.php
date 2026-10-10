@@ -73,7 +73,7 @@
 
 <template x-if="$store.app.route.page === 'settings.audit'">
   <div x-data="auditPage()">
-    <div class="mb-4 flex items-center gap-3"><h1 class="text-2xl font-bold" x-text="$store.app.t('audit')"></h1><input class="input w-60" placeholder="action e.g. order.voided" x-model.debounce.400ms="action" @input="load()"></div>
+    <div class="mb-4 flex items-center gap-3"><h1 class="text-2xl font-bold" x-text="$store.app.t('audit')"></h1><input class="input w-60" placeholder="action e.g. order.voided" x-model="action" @input.debounce.400ms="load()"></div>
     <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr><th class="th">When</th><th class="th">Action</th><th class="th">Entity</th><th class="th">Details</th><th class="th">IP</th></tr></thead>
       <tbody class="divide-y divide-slate-100"><template x-for="a in rows" :key="a.id"><tr><td class="td whitespace-nowrap" x-text="(a.created_at || '').slice(0,19).replace('T',' ')"></td><td class="td" x-text="a.action"></td><td class="td" x-text="(a.entity || '') + ' ' + (a.entity_id || '').slice(0,8)"></td><td class="td font-mono text-xs" x-text="short(a.after || a.before)"></td><td class="td" x-text="a.ip"></td></tr></template></tbody></table></div>
     <div class="mt-3 flex items-center gap-2 text-sm"><button class="btn btn-secondary btn-sm" :disabled="page <= 1" @click="load(page - 1)">‹</button><span x-text="page + ' / ' + last"></span><button class="btn btn-secondary btn-sm" :disabled="page >= last" @click="load(page + 1)">›</button></div>

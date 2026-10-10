@@ -4,6 +4,9 @@ import { t, setLocale, setOverrides, getLocale } from './i18n.js';
 import { schemas, catalogFields, MENU_KINDS, TOUR_KINDS } from './schemas.js';
 import { registerPages } from './pages.js';
 import { registerSettings } from './settings.js';
+import { registerChrome } from './chrome.js';
+import { registerFrontDesk } from '../shared/frontdesk.js';
+import '../shared/theme.js';
 
 window.Alpine = Alpine;
 
@@ -13,6 +16,7 @@ export const NAV = [
     { group: 'rooms', label: 'rooms', module: 'rooms', items: [
         { label: 'board', route: 'rooms/board', any: ['rooms.view'] },
         { label: 'reservations', route: 'rooms/reservations', any: ['rooms.view'] },
+        { label: 'timeline', route: 'rooms/timeline', any: ['rooms.view'] },
         { label: 'guests', route: 'crud/guests', any: ['rooms.view', 'tourism.view'] },
         { label: 'room_types', route: 'crud/room-types', any: ['rooms.view'] },
         { label: 'rooms', route: 'crud/rooms', any: ['rooms.view'] },
@@ -26,10 +30,12 @@ export const NAV = [
         { label: 'categories', route: 'crud/catalog-categories', any: ['pos.view'] },
         { label: 'tables', route: 'crud/tables', any: ['pos.view'] },
         { label: 'shifts', route: 'pos/shifts', any: ['pos.view'] },
+        { label: 'vouchers', route: 'crud/vouchers', any: ['pos.view'] },
     ] },
     { group: 'tours', label: 'tours', module: 'tourism', items: [
         { label: 'bookings', route: 'tours/bookings', any: ['tourism.view'] },
         { label: 'departures', route: 'tours/departures', any: ['tourism.view'] },
+        { label: 'calendar', route: 'tours/calendar', any: ['tourism.view'] },
         { label: 'services', route: 'tours/services', any: ['tourism.view'] },
         { label: 'resources', route: 'crud/tourism-resources', any: ['tourism.view'] },
     ] },
@@ -127,6 +133,8 @@ Object.assign(window, { api, money, num, today, addDays, uuid, download, T: t })
 document.addEventListener('alpine:init', () => {
     registerPages(Alpine, { schemas, catalogFields, MENU_KINDS, TOUR_KINDS });
     registerSettings(Alpine);
+    registerFrontDesk(Alpine);
+    registerChrome(Alpine, NAV);
 });
 
 Alpine.start();

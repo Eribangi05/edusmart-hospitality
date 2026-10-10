@@ -13,6 +13,9 @@ Kotlin + Jetpack Compose (Material 3), min SDK 26, package `com.edusmartconsult.
 ## Structure
 `core/` JSON helpers, tax engine, UUIDv7 · `data/net` API client with single-flight token refresh · `data/local` Room · `data/sync` sync engine + worker · `data/Store` data hub · `ui/` Compose screens · `print/` ESC/POS over Bluetooth.
 
+## Alerts and promo codes
+Home shows the same "needs attention" alerts as the web console (online); the order screen accepts promo codes (online, once the order has synced).
+
 ## Receipts and barcodes
 Pair a Bluetooth ESC/POS thermal printer in Android settings, then choose it in Settings → Receipt printer. Barcode scanning uses Google's code scanner (no camera permission).
 

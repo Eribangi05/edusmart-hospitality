@@ -3,7 +3,7 @@
 const S = (v) => v.map((x) => (typeof x === 'string' ? { value: x, label: x.replace(/_/g, ' ') } : x));
 
 export const schemas = {
-    guests: { title: 'guests', perm: 'rooms', entity: 'guest', columns: ['name', 'phone', 'email', 'nationality', 'id_number'],
+    guests: { title: 'guests', perm: 'rooms', entity: 'guest', profile: true, columns: ['name', 'phone', 'email', 'nationality', 'id_number'],
         fields: [{ k: 'name', req: 1 }, { k: 'phone', type: 'text' }, { k: 'email', type: 'email' }, { k: 'nationality' }, { k: 'id_type', opts: S(['national_id', 'passport', 'driving_licence', 'residence_permit', 'other']), type: 'select' }, { k: 'id_number' }, { k: 'dob', type: 'date' }, { k: 'notes', type: 'textarea' }] },
     'room-types': { title: 'room_types', perm: 'rooms', entity: 'room_type', columns: ['name', 'code', { k: 'base_price', type: 'money' }, 'max_adults', 'max_children'],
         fields: [{ k: 'name', req: 1 }, { k: 'code' }, { k: 'base_price', type: 'money', req: 1 }, { k: 'max_adults', type: 'number' }, { k: 'max_children', type: 'number' }, { k: 'amenities', type: 'tags' }, { k: 'description', type: 'textarea' }, { k: 'property_id', type: 'ref', ref: 'properties', label: 'property' }, { k: 'is_active', type: 'bool', def: true }] },
@@ -35,6 +35,9 @@ export const schemas = {
         fields: [{ k: 'type', type: 'select', opts: S(['clean', 'inspect', 'turndown', 'maintenance', 'other']), req: 1 }, { k: 'title', req: 1 }, { k: 'room_id', type: 'ref', ref: 'rooms' }, { k: 'priority', type: 'select', opts: S(['low', 'normal', 'high', 'urgent']), def: 'normal' }, { k: 'assigned_to', type: 'ref', ref: 'users' }, { k: 'due_at', type: 'datetime' }, { k: 'description', type: 'textarea' }] },
     expenses: { title: 'expenses', perm: 'finance', entity: 'expense', columns: ['date', 'category', 'description', { k: 'amount', type: 'money' }, 'paid_with'],
         fields: [{ k: 'date', type: 'date', req: 1 }, { k: 'category', req: 1 }, { k: 'description' }, { k: 'amount', type: 'money', req: 1 }, { k: 'paid_with', type: 'select', opts: S(['cash', 'momo', 'card', 'bank', 'other']), def: 'cash' }, { k: 'supplier_id', type: 'ref', ref: 'suppliers' }, { k: 'property_id', type: 'ref', ref: 'properties' }] },
+    vouchers: { title: 'vouchers', perm: 'pos', entity: 'voucher', columns: ['code', 'name', 'kind', 'value', 'uses', 'valid_to', { k: 'is_active', type: 'bool' }],
+        fields: [{ k: 'code', req: 1, hint: 'What staff type at the till, e.g. WELCOME10' }, { k: 'name' }, { k: 'kind', type: 'select', opts: S(['percent', 'amount']), def: 'percent', req: 1 },
+            { k: 'value', type: 'number', req: 1, hint: 'Percent (10 = 10%) or RWF amount' }, { k: 'min_total', type: 'money', hint: 'Minimum order total' }, { k: 'valid_from', type: 'date' }, { k: 'valid_to', type: 'date' }, { k: 'max_uses', type: 'number' }, { k: 'is_active', type: 'bool', def: true }] },
     properties: { title: 'company', fixed: 'core.settings', entity: 'property', columns: ['name', 'type', 'code', 'phone', 'address'],
         fields: [{ k: 'name', req: 1 }, { k: 'type', type: 'select', opts: S(['hotel', 'guesthouse', 'lodge', 'restaurant', 'bar', 'shop', 'tour_operator', 'spa', 'other']), def: 'hotel' }, { k: 'code' }, { k: 'phone' }, { k: 'email', type: 'email' }, { k: 'address' }, { k: 'timezone', def: 'Africa/Kigali' }, { k: 'is_active', type: 'bool', def: true }] },
     'tax-rates': { title: 'taxes', fixed: 'core.settings', entity: 'tax_rate', columns: ['name', 'key', { k: 'rate_bp', type: 'bp' }, 'kind', { k: 'inclusive', type: 'bool' }, { k: 'is_active', type: 'bool' }],

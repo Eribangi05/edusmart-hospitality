@@ -183,4 +183,17 @@ class PlatformSyncBillingTest extends TestCase
         $this->assertSame('rejected', $res[0]['status']);
         $this->assertSame('forbidden', $res[0]['reason']);
     }
+
+    public function test_platform_admin_reads_website_contact_messages(): void
+    {
+        $this->postJson('/contact', ['name' => 'Aline', 'email' => 'a@example.com', 'message' => 'Hello'])->assertCreated();
+        [$h] = $this->admin();
+        $this->enable2fa($h);
+        $list = $this->getJson('/api/v1/admin/contacts', $h)->assertOk()->json('data');
+        $this->assertSame('Aline', $list[0]['name']);
+        $this->postJson("/api/v1/admin/contacts/{$list[0]['id']}/handled", [], $h)->assertOk();
+        $this->assertNotNull($this->getJson('/api/v1/admin/contacts', $h)->json('data.0.handled_at'));
+        [$tenantH] = $this->registerCompany('Kivu Lodge');
+        $this->getJson('/api/v1/admin/contacts', $tenantH)->assertStatus(403);
+    }
 }

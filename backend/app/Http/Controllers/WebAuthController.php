@@ -7,6 +7,7 @@ use App\Services\Audit;
 use App\Services\TenantProvisioner;
 use App\Support\Modules;
 use App\Support\Totp;
+use App\Support\Workspaces;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -90,9 +91,9 @@ class WebAuthController extends Controller
         if ($user->is_platform_admin) {
             return '/admin';
         }
-        $ws = \App\Support\Workspaces::for($user, $user->tenant?->enabledModules() ?? []);
+        $ws = Workspaces::for($user, $user->tenant?->enabledModules() ?? []);
 
-        return \App\Support\Workspaces::landing($ws, $user);
+        return Workspaces::landing($ws, $user);
     }
 
     public function logout(Request $r)

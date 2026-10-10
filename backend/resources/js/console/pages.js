@@ -1,5 +1,6 @@
 import { api, money, num, today, addDays, uuid, download } from './api.js';
 import { t } from './i18n.js';
+import { printDoc } from '../shared/print.js';
 
 const store = () => window.Alpine.store('app');
 const refCache = {};
@@ -34,6 +35,9 @@ export function registerPages(Alpine, { schemas, catalogFields, MENU_KINDS, TOUR
         get canDelete() { const sc = this.schema; return sc.fixed ? this.s.can(sc.fixed) : this.s.can((sc.perm || 'core') + '.delete'); },
         get cols() { return this.schema.columns.map((c) => (typeof c === 'string' ? { k: c } : c)); },
         title() { return t(this.schema.title); },
+        prof: null, tierClass: (t2) => ({ Platinum: 'bg-violet-100 text-violet-800', Gold: 'bg-amber-100 text-amber-800', Silver: 'bg-slate-200 text-slate-700', New: 'bg-emerald-100 text-emerald-800' }[t2]),
+        async openProfile(row) { try { this.prof = (await api.get(`/guests/${row.id}/profile`)).data; } catch (e) { this.s.err(e); } },
+        money,
         async init() { await this.load(); },
         async load(page = 1) {
             this.loading = true;
@@ -141,14 +145,35 @@ export function registerPages(Alpine, { schemas, catalogFields, MENU_KINDS, TOUR
 
     // ------------------------------------------------------------ dashboard
     Alpine.data('dashboardPage', () => ({
-        d: null, date: today(), loading: true, money, num,
+        d: null, trends: null, onboarding: null, activity: [], date: today(), loading: true, money, num, days: 14,
         async init() { await this.load(); },
+        greeting() { const h = new Date().getHours(); const n = (store().ctx.user.name || '').split(' ')[0]; return `${h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'}, ${n}`; },
         async load() {
             this.loading = true;
-            try { this.d = (await api.get('/reports/dashboard', { date: this.date, property_id: store().propertyId })).data; } catch (e) { store().err(e); }
+            const s = store(), pid = s.propertyId || undefined;
+            const safe = (p) => p.catch(() => null);
+            const [d, tr, ob, ac] = await Promise.all([
+                safe(api.get('/reports/dashboard', { date: this.date, property_id: pid })),
+                safe(api.get('/reports/trends', { days: this.days })),
+                s.can('core.settings') ? safe(api.get('/onboarding')) : null,
+                s.can('core.audit') ? safe(api.get('/activity')) : null,
+            ]);
+            this.d = d?.data || null; this.trends = tr?.data || null; this.onboarding = ob?.data || null; this.activity = ac?.data || [];
             this.loading = false;
         },
         methods() { return Object.entries(this.d?.collected?.by_method || {}); },
+        // chart data
+        revenueBars() { return (this.trends?.series || []).map((x) => ({ label: x.date.slice(8), value: x.collected })); },
+        occupancyLine() { return (this.trends?.series || []).filter((x) => x.occupancy !== null).map((x) => ({ label: x.date.slice(8), value: x.occupancy })); },
+        topItems() { return (this.trends?.top_items || []).map((x) => ({ label: x.name, value: Number(x.amount), qty: Number(x.qty) })); },
+        mix() { return (this.trends?.payment_mix || []).map((x) => ({ label: x.method_type.replace('_', ' '), value: Number(x.amount) })); },
+        hours() { const h = this.trends?.orders_by_hour || {}; return Array.from({ length: 24 }, (_, i) => h[i] || 0); },
+        weekTotal() { return (this.trends?.series || []).slice(-7).reduce((s, x) => s + x.collected, 0); },
+        prevWeekTotal() { return (this.trends?.series || []).slice(-14, -7).reduce((s, x) => s + x.collected, 0); },
+        delta() { const p = this.prevWeekTotal(); return p ? Math.round((100 * (this.weekTotal() - p)) / p) : null; },
+        progress() { const o = this.onboarding; return o ? Math.round((100 * o.done) / o.total) : 0; },
+        ago(ts) { const m = Math.round((Date.now() - new Date(ts).getTime()) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; },
+        label(a) { return a.replace(/[._]/g, ' '); },
     }));
 
     // ------------------------------------------------------------ room board
@@ -211,6 +236,12 @@ export function registerPages(Alpine, { schemas, catalogFields, MENU_KINDS, TOUR
             try { await api.post(`/folios/${this.view.folio.id}/entries`, { type: 'charge', description: this.view.charge.description, amount: Number(this.view.charge.amount) }); await this.open(this.view.data.id); } catch (e) { store().err(e); }
         },
         async voidEntry(e) { const reason = prompt(t('delete') + ': reason'); if (!reason) return; try { await api.post(`/folio-entries/${e.id}/void`, { reason }); await this.open(this.view.data.id); } catch (x) { store().err(x); } },
+        printInvoice() {
+            const f = this.view.folio, r = this.view.data, g = this.view.guest, c = store().ctx;
+            printDoc({ business: c.tenant.name, title: 'Guest invoice', number: f?.number || r.number, date: new Date().toLocaleDateString(), party: g?.name, partySub: [g?.phone, g?.email].filter(Boolean).join(' · '), sub: `Stay ${r.check_in} to ${r.check_out} · ${r.number}`,
+                lines: (f?.entries || []).filter((e) => !e.voided_at).map((e) => ({ d: e.description, q: Number(e.quantity) === 1 ? '' : Number(e.quantity), a: e.amount })),
+                totals: [{ l: 'Charges', a: f?.charges || 0 }, { l: 'Payments', a: -(f?.payments || 0) }, { l: 'Balance due', a: f?.balance || 0, bold: true }], footer: c.settings['receipt.footer'] });
+        },
         badge(s) { return { confirmed: 'bg-sky-100 text-sky-800', checked_in: 'bg-emerald-100 text-emerald-800', checked_out: 'bg-slate-100 text-slate-700', cancelled: 'bg-red-100 text-red-700', no_show: 'bg-red-100 text-red-700', pending: 'bg-amber-100 text-amber-800' }[s] || 'bg-slate-100'; },
     }));
 
@@ -318,6 +349,11 @@ export function registerPages(Alpine, { schemas, catalogFields, MENU_KINDS, TOUR
         async assign() { try { await api.post(`/bookings/${this.view.id}/assign`, { resource_id: this.view.resource_id }); await this.open(this.view.id); } catch (e) { store().err(e); } },
         async pay() { try { await api.post(`/bookings/${this.view.id}/payments`, { ...this.view.pay, amount: Number(this.view.pay.amount), payer_phone: this.view.pay.payer_phone || undefined, idempotency_key: uuid() }); await this.load(); await this.open(this.view.id); } catch (e) { store().err(e); } },
         resName(id) { return label(this.resources.find((r) => r.id === id)); },
+        printInvoice() {
+            const b = this.view, c = store().ctx;
+            printDoc({ business: c.tenant.name, title: 'Booking invoice', number: b.number, date: new Date().toLocaleDateString(), party: b.customer_name, partySub: [b.customer_phone, b.customer_email].filter(Boolean).join(' · '), sub: `Service date ${b.date.slice(0, 10)} · ${b.pax_adults + b.pax_children} pax`,
+                lines: b.lines.map((l) => ({ d: l.description, q: Number(l.quantity), a: l.line_total })), totals: [{ l: 'Total', a: b.total }, { l: 'Paid', a: b.total - b.balance }, { l: 'Balance due', a: b.balance, bold: true }], footer: c.settings['receipt.footer'] });
+        },
         badge(s) { return { inquiry: 'bg-slate-100', confirmed: 'bg-sky-100 text-sky-800', paid: 'bg-emerald-100 text-emerald-800', in_progress: 'bg-indigo-100 text-indigo-800', completed: 'bg-slate-200', cancelled: 'bg-red-100 text-red-700', no_show: 'bg-red-100 text-red-700' }[s] || ''; },
     }));
 

@@ -1,6 +1,8 @@
 package com.edusmartconsult.hospitality.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +30,8 @@ import com.edusmartconsult.hospitality.core.int
 import com.edusmartconsult.hospitality.core.long
 import com.edusmartconsult.hospitality.core.money
 import com.edusmartconsult.hospitality.core.obj
+import com.edusmartconsult.hospitality.core.objs
+import com.edusmartconsult.hospitality.core.str
 import com.edusmartconsult.hospitality.data.local.KvEntity
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -38,9 +42,11 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val container = LocalContainer.current
     val c = ctx()
     var d by remember { mutableStateOf<JsonObject?>(null) }
+    var alerts by remember { mutableStateOf<List<JsonObject>>(emptyList()) }
     // show the last known numbers instantly, then refresh when online
     LaunchedEffect(Unit) {
         container.db.kv().get("dashboard")?.let { d = runCatching { AppJson.parseToJsonElement(it).asObject() }.getOrNull() }
+        runCatching { alerts = container.api.get("notifications").asObject().objs("data") }
         runCatching {
             val res = container.api.get("reports/dashboard").asObject().obj("data")
             if (res != null) { d = res; container.db.kv().put(KvEntity("dashboard", AppJson.encodeToString(JsonElement.serializer(), res))) }
@@ -67,6 +73,19 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (low != null) StatCard(stringResource(R.string.low_stock), x.int("low_stock").toString(), Modifier.weight(1f))
                     StatCard(stringResource(R.string.tasks_open), x.int("tasks_open").toString(), Modifier.weight(1f))
+                }
+            }
+        }
+        if (alerts.isNotEmpty()) {
+            SectionTitle(stringResource(R.string.notifications))
+            alerts.take(5).forEach { n ->
+                val color = when (n.str("severity")) { "critical" -> MaterialTheme.colorScheme.error; "warning" -> androidx.compose.ui.graphics.Color(0xFFD97706); else -> MaterialTheme.colorScheme.primary }
+                val target = when (n.str("route")) { "rooms/reservations", "rooms/board" -> "rooms"; "pos/orders", "pos/shifts" -> "pos/orders"; "tours/bookings" -> "tours"; "crud/tasks" -> "tasks"; else -> null }
+                ListCard(onClick = target?.let { t -> { onNavigate(t) } }) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        androidx.compose.foundation.layout.Box(Modifier.padding(top = 6.dp).size(8.dp).background(color, androidx.compose.foundation.shape.CircleShape))
+                        Column { Text(n.str("title") ?: "", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold); Text(n.str("detail") ?: "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    }
                 }
             }
         }

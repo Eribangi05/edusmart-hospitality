@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.site')
 @section('title', 'Terms of service · Edusmart Hospitality')
 @section('body')
 <main class="mx-auto max-w-3xl px-4 py-10">

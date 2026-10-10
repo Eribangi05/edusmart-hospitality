@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Device;
 use App\Models\Domain as D;
+use App\Models\PaymentMethod;
 use App\Models\Property;
-use App\Models\Setting;
 use App\Models\TaxRate;
-use App\Models\Tenant;
+use App\Models\User;
 use App\Services\Rooms\FolioService;
 use App\Support\Tenancy;
 use Carbon\Carbon;
@@ -225,7 +226,7 @@ class InsightsController extends Controller
         $steps = [
             ['key' => 'property', 'title' => 'Name your business and add your outlets', 'route' => 'crud/properties', 'done' => Property::count() > 0 && Property::where('name', '!=', app(Tenancy::class)->get()->name)->count() >= 0 && Property::count() > 0],
             ['key' => 'taxes', 'title' => 'Check your VAT / service charge settings', 'route' => 'crud/tax-rates', 'done' => TaxRate::where('updated_at', '>', DB::raw('created_at'))->count() > 0],
-            ['key' => 'team', 'title' => 'Invite your team and give them roles', 'route' => 'settings/users', 'done' => \App\Models\User::where('tenant_id', app(Tenancy::class)->id())->count() > 1],
+            ['key' => 'team', 'title' => 'Invite your team and give them roles', 'route' => 'settings/users', 'done' => User::where('tenant_id', app(Tenancy::class)->id())->count() > 1],
         ];
         if ($has('rooms')) {
             $steps[] = ['key' => 'rooms', 'title' => 'Add room types, rooms and rates', 'route' => 'crud/room-types', 'done' => D\Room::count() > 0];
@@ -240,8 +241,8 @@ class InsightsController extends Controller
         if ($has('inventory')) {
             $steps[] = ['key' => 'stock', 'title' => 'Add stock items and opening balances', 'route' => 'crud/inventory-items', 'done' => D\InventoryItem::count() > 0];
         }
-        $steps[] = ['key' => 'momo', 'title' => 'Confirm mobile-money is enabled as a payment method', 'route' => 'crud/payment-methods', 'done' => \App\Models\PaymentMethod::where('type', 'momo')->where('is_active', true)->count() > 0];
-        $steps[] = ['key' => 'device', 'title' => 'Sign in on the Android app', 'route' => 'settings/devices', 'done' => \App\Models\Device::where('platform', 'android')->count() > 0];
+        $steps[] = ['key' => 'momo', 'title' => 'Confirm mobile-money is enabled as a payment method', 'route' => 'crud/payment-methods', 'done' => PaymentMethod::where('type', 'momo')->where('is_active', true)->count() > 0];
+        $steps[] = ['key' => 'device', 'title' => 'Sign in on the Android app', 'route' => 'settings/devices', 'done' => Device::where('platform', 'android')->count() > 0];
         $done = collect($steps)->where('done', true)->count();
 
         return response()->json(['data' => ['steps' => $steps, 'done' => $done, 'total' => count($steps)]]);
@@ -266,12 +267,24 @@ class InsightsController extends Controller
         ]]);
     }
 
+    /** Trips where the signed-in user is the assigned guide/driver (resource linked to their login). */
+    public function myTrips(Request $r)
+    {
+        $resIds = D\TourismResource::where('user_id', $r->user()->id)->pluck('id');
+        $ids = D\BookingAssignment::whereIn('resource_id', $resIds)->where('date', '>=', now()->toDateString())->pluck('booking_id');
+        $rows = D\Booking::whereIn('id', $ids)->whereNotIn('status', ['cancelled', 'no_show', 'completed'])->orderBy('date')->orderBy('start_time')->get();
+        $items = D\CatalogItem::whereIn('id', $rows->pluck('catalog_item_id'))->pluck('name', 'id');
+
+        return response()->json(['data' => $rows->map(fn ($b) => ['id' => $b->id, 'number' => $b->number, 'date' => $b->date->toDateString(), 'start_time' => $b->start_time, 'service' => $items[$b->catalog_item_id] ?? '',
+            'customer_name' => $b->customer_name, 'customer_phone' => $b->customer_phone, 'pax' => $b->pax_adults + $b->pax_children, 'pickup_location' => $b->pickup_location, 'status' => $b->status, 'notes' => $b->notes])]);
+    }
+
     public function activity(Request $r)
     {
         $keep = ['order.voided', 'order.item_voided', 'order.discount', 'order.voucher', 'pos.manager_override', 'reservation.created', 'reservation.checked_in', 'reservation.checked_out', 'reservation.cancelled', 'booking.created', 'payment.recorded', 'shift.closed',
             'stock.waste', 'stock.stocktake', 'user.created', 'role.updated', 'setting.changed', 'device.revoked', 'folio.entry_voided', 'leave.approved', 'billing.invoice_paid'];
         $rows = AuditLog::where('tenant_id', app(Tenancy::class)->id())->whereIn('action', $keep)->orderByDesc('created_at')->limit(25)->get();
-        $users = \App\Models\User::whereIn('id', $rows->pluck('user_id')->filter())->pluck('name', 'id');
+        $users = User::whereIn('id', $rows->pluck('user_id')->filter())->pluck('name', 'id');
 
         return response()->json(['data' => $rows->map(fn ($x) => ['id' => $x->id, 'action' => $x->action, 'by' => $users[$x->user_id] ?? 'System', 'entity' => $x->entity, 'at' => $x->created_at->toIso8601String(), 'info' => $x->after])]);
     }

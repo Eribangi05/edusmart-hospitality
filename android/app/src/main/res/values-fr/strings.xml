@@ -160,4 +160,9 @@
     <string name="subscription_banner">Abonnement suspendu : lecture seule</string>
     <string name="version">Version %1$s</string>
     <string name="not_available">Non disponible pour votre rôle ou forfait</string>
+    <string name="notifications">À traiter</string>
+    <string name="no_alerts">Tout est en ordre.</string>
+    <string name="promo_code">Code promo</string>
+    <string name="apply">Appliquer</string>
+    <string name="promo_applied">Réduction appliquée</string>
 </resources>

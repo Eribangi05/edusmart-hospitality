@@ -16,6 +16,31 @@
         }
     ],
     "paths": {
+        "/activity": {
+            "get": {
+                "tags": [
+                    "activity"
+                ],
+                "summary": "Get /activity",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "core.audit"
+                ]
+            }
+        },
         "/admin/2fa/confirm": {
             "post": {
                 "tags": [
@@ -80,6 +105,60 @@
                         "$ref": "#/components/responses/Error"
                     }
                 }
+            }
+        },
+        "/admin/contacts": {
+            "get": {
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Get /admin/contacts",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/admin/contacts/{id}/handled": {
+            "post": {
+                "tags": [
+                    "admin"
+                ],
+                "summary": "Post /admin/contacts/{id}/handled",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
             }
         },
         "/admin/invoices/{id}/mark-paid": {
@@ -1541,6 +1620,32 @@
                 ]
             }
         },
+        "/desk": {
+            "get": {
+                "tags": [
+                    "desk"
+                ],
+                "summary": "Get /desk",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "rooms.view"
+                ],
+                "x-module": "rooms"
+            }
+        },
         "/devices": {
             "get": {
                 "tags": [
@@ -2175,6 +2280,42 @@
                 ]
             }
         },
+        "/guests/{id}/profile": {
+            "get": {
+                "tags": [
+                    "guests"
+                ],
+                "summary": "Get /guests/{id}/profile",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "rooms.view",
+                    "tourism.view"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
         "/health": {
             "get": {
                 "tags": [
@@ -2633,6 +2774,29 @@
                 "x-module": "housekeeping"
             }
         },
+        "/my-trips": {
+            "get": {
+                "tags": [
+                    "my-trips"
+                ],
+                "summary": "Get /my-trips",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-module": "tourism"
+            }
+        },
         "/my/leave-requests": {
             "post": {
                 "tags": [
@@ -2681,6 +2845,53 @@
                     "finance.reconcile"
                 ],
                 "x-module": "rooms"
+            }
+        },
+        "/notifications": {
+            "get": {
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get /notifications",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/onboarding": {
+            "get": {
+                "tags": [
+                    "onboarding"
+                ],
+                "summary": "Get /onboarding",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "core.settings"
+                ]
             }
         },
         "/order-items/{id}/status": {
@@ -3135,6 +3346,42 @@
                     "orders"
                 ],
                 "summary": "Post /orders/{id}/void",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "pos.edit"
+                ],
+                "x-module": "pos",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/orders/{id}/voucher": {
+            "post": {
+                "tags": [
+                    "orders"
+                ],
+                "summary": "Post /orders/{id}/voucher",
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -3982,6 +4229,34 @@
                 "x-module": "finance"
             }
         },
+        "/reports/trends": {
+            "get": {
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Get /reports/trends",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "finance.view",
+                    "rooms.view",
+                    "pos.view",
+                    "tourism.view"
+                ]
+            }
+        },
         "/reservations": {
             "get": {
                 "tags": [
@@ -4601,6 +4876,32 @@
                 }
             }
         },
+        "/rooms/timeline": {
+            "get": {
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Get /rooms/timeline",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "x-required-permission-any-of": [
+                    "rooms.view"
+                ],
+                "x-module": "rooms"
+            }
+        },
         "/rooms/{id}": {
             "get": {
                 "tags": [
@@ -4862,6 +5163,28 @@
                         }
                     }
                 ]
+            }
+        },
+        "/search": {
+            "get": {
+                "tags": [
+                    "search"
+                ],
+                "summary": "Get /search",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
             }
         },
         "/settings": {
@@ -6205,6 +6528,140 @@
                 "x-required-permission-any-of": [
                     "core.users"
                 ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/vouchers": {
+            "get": {
+                "tags": [
+                    "vouchers"
+                ],
+                "summary": "Get /vouchers",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "vouchers"
+                ],
+                "summary": "Post /vouchers",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        },
+        "/vouchers/{id}": {
+            "get": {
+                "tags": [
+                    "vouchers"
+                ],
+                "summary": "Get /vouchers/{id}",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "vouchers"
+                ],
+                "summary": "Patch /vouchers/{id}",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "vouchers"
+                ],
+                "summary": "Delete /vouchers/{id}",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                },
                 "parameters": [
                     {
                         "name": "id",

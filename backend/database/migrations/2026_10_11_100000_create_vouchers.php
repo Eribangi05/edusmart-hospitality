@@ -15,7 +15,7 @@ return new class extends Migration
             $t->string('code');
             $t->string('name')->nullable();
             $t->string('kind')->default('percent'); // percent | amount
-            $t->unsignedBigInteger('value');         // percent in basis points (1000 = 10%) or whole RWF
+            $t->unsignedBigInteger('value');         // whole percent (10 = 10%) or whole RWF
             $t->unsignedBigInteger('min_total')->default(0);
             $t->date('valid_from')->nullable();
             $t->date('valid_to')->nullable();

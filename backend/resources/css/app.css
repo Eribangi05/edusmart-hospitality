@@ -26,3 +26,66 @@
     .td { @apply px-3 py-2 text-sm text-slate-700; }
     .badge { @apply inline-block rounded-full px-2 py-0.5 text-xs font-medium; }
 }
+
+/* ------------------------------------------------------------------ themes */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* accent palettes remap the emerald scale, so every existing class follows the user's choice */
+:root[data-accent='indigo'] { --color-emerald-50:#eef2ff; --color-emerald-100:#e0e7ff; --color-emerald-200:#c7d2fe; --color-emerald-300:#a5b4fc; --color-emerald-400:#818cf8; --color-emerald-500:#6366f1; --color-emerald-600:#4f46e5; --color-emerald-700:#4338ca; --color-emerald-800:#3730a3; --color-emerald-900:#312e81; }
+:root[data-accent='rose']   { --color-emerald-50:#fff1f2; --color-emerald-100:#ffe4e6; --color-emerald-200:#fecdd3; --color-emerald-300:#fda4af; --color-emerald-400:#fb7185; --color-emerald-500:#f43f5e; --color-emerald-600:#e11d48; --color-emerald-700:#be123c; --color-emerald-800:#9f1239; --color-emerald-900:#881337; }
+:root[data-accent='amber']  { --color-emerald-50:#fffbeb; --color-emerald-100:#fef3c7; --color-emerald-200:#fde68a; --color-emerald-300:#fcd34d; --color-emerald-400:#fbbf24; --color-emerald-500:#f59e0b; --color-emerald-600:#d97706; --color-emerald-700:#b45309; --color-emerald-800:#92400e; --color-emerald-900:#78350f; }
+:root[data-accent='sky']    { --color-emerald-50:#f0f9ff; --color-emerald-100:#e0f2fe; --color-emerald-200:#bae6fd; --color-emerald-300:#7dd3fc; --color-emerald-400:#38bdf8; --color-emerald-500:#0ea5e9; --color-emerald-600:#0284c7; --color-emerald-700:#0369a1; --color-emerald-800:#075985; --color-emerald-900:#0c4a6e; }
+:root[data-accent='violet'] { --color-emerald-50:#f5f3ff; --color-emerald-100:#ede9fe; --color-emerald-200:#ddd6fe; --color-emerald-300:#c4b5fd; --color-emerald-400:#a78bfa; --color-emerald-500:#8b5cf6; --color-emerald-600:#7c3aed; --color-emerald-700:#6d28d9; --color-emerald-800:#5b21b6; --color-emerald-900:#4c1d95; }
+
+/* dark mode: semantic remap of the slate/white utilities used across the views */
+.dark body { background:#0b1220; color:#e2e8f0; }
+.dark .bg-white { background-color:#111a2e !important; }
+.dark .bg-slate-50 { background-color:#0f172a !important; }
+.dark .bg-slate-100 { background-color:#0b1220 !important; }
+.dark .bg-slate-200 { background-color:#1e293b !important; }
+.dark .text-slate-900 { color:#f1f5f9 !important; }
+.dark .text-slate-800, .dark .text-slate-700 { color:#e2e8f0 !important; }
+.dark .text-slate-600, .dark .text-slate-500 { color:#94a3b8 !important; }
+.dark .text-slate-400 { color:#64748b !important; }
+.dark .border-slate-100, .dark .border-slate-200, .dark .border-slate-300 { border-color:#243049 !important; }
+.dark .divide-slate-100 > :not(:last-child), .dark .divide-slate-200 > :not(:last-child) { border-color:#243049 !important; }
+.dark .hover\:bg-slate-50:hover, .dark .hover\:bg-slate-100:hover { background-color:#16223a !important; }
+.dark .input { background:#0f172a; color:#e2e8f0; border-color:#2b3a57; }
+.dark .btn-secondary { background:#111a2e; color:#e2e8f0; border-color:#2b3a57; }
+.dark .btn-secondary:hover { background:#16223a; }
+.dark .bg-emerald-50 { background-color:color-mix(in srgb, var(--color-emerald-600) 18%, #0b1220) !important; }
+.dark .text-emerald-800, .dark .text-emerald-700 { color:var(--color-emerald-300) !important; }
+.dark .bg-red-50 { background-color:#3b1219 !important; } .dark .bg-amber-50, .dark .bg-amber-100 { background-color:#3a2a0c !important; }
+.dark .bg-sky-100, .dark .bg-emerald-100, .dark .bg-orange-50, .dark .bg-rose-50 { filter:brightness(.55) saturate(1.2); }
+.dark select option { background:#0f172a; color:#e2e8f0; }
+
+/* density */
+.compact .td { padding-top:.3rem; padding-bottom:.3rem; font-size:.8rem; }
+.compact .th { padding-top:.35rem; padding-bottom:.35rem; }
+.compact .card { padding:.65rem; }
+.compact .btn { padding:.35rem .7rem; }
+
+/* print: only the printable document */
+@media print {
+  .no-print { display:none !important; }
+  body { background:white !important; color:#000 !important; }
+  .print-doc { position:static !important; box-shadow:none !important; border:0 !important; }
+}
+
+/* kitchen display + terminal chrome */
+.kds-ticket { border-left-width:6px; }
+.touch-tile { min-height:5.5rem; }
+@keyframes pulse-soft { 0%,100% { opacity:1 } 50% { opacity:.55 } }
+.pulse-soft { animation:pulse-soft 1.6s ease-in-out infinite; }
+
+/* dark mode for component classes (they use @apply, so the utility overrides above do not reach them) */
+.dark .card { background-color:#111a2e; border-color:#243049; }
+.dark .td { color:#cbd5e1; }
+.dark .th { color:#94a3b8; }
+.dark thead.bg-slate-50, .dark .bg-slate-50 { background-color:#0f172a !important; }
+.dark .btn-secondary { border-color:#2b3a57; }
+.dark kbd { border-color:#2b3a57; }
+.dark .ring-slate-200 { --tw-ring-color:#243049; }
+.dark .shadow-sm, .dark .shadow-xl { --tw-shadow-color:#000; }
+.dark .text-emerald-700, .dark .text-emerald-800 { color:var(--color-emerald-300) !important; }
+.dark .bg-emerald-100 { background-color:color-mix(in srgb, var(--color-emerald-600) 30%, #0b1220) !important; filter:none; }

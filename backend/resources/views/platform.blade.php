@@ -9,7 +9,7 @@
 @verbatim
 <div x-data="platform()" x-cloak class="mx-auto max-w-6xl p-4 lg:p-6">
   <header class="mb-6 flex items-center gap-3"><h1 class="text-2xl font-bold text-emerald-700">Platform admin</h1><div class="flex-1"></div>
-    <nav class="flex gap-1"><template x-for="t in ['overview','tenants','plans','audit']"><button class="btn btn-secondary btn-sm capitalize" :class="tab === t ? 'ring-2 ring-emerald-500' : ''" @click="go(t)" x-text="t"></button></template></nav>
+    <nav class="flex gap-1"><template x-for="t in ['overview','tenants','plans','contacts','audit']"><button class="btn btn-secondary btn-sm capitalize" :class="tab === t ? 'ring-2 ring-emerald-500' : ''" @click="go(t)" x-text="t"></button></template></nav>
     <button class="btn btn-secondary btn-sm" @click="logout()">Log out</button></header>
   <p x-show="error" x-text="error" class="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"></p>
   <div x-show="needs2fa" class="card mb-4 space-y-2"><p class="font-semibold">Two-factor authentication is required for the platform console.</p>
@@ -21,7 +21,7 @@
   </section>
 
   <section x-show="tab === 'tenants'">
-    <div class="mb-3 flex gap-2"><input class="input w-64" placeholder="Search company…" x-model.debounce.300ms="q" @input="loadTenants()"><select class="input w-auto" x-model="status" @change="loadTenants()"><option value="">All</option><template x-for="s in ['trial','active','grace','suspended']"><option :value="s" x-text="s"></option></template></select></div>
+    <div class="mb-3 flex gap-2"><input class="input w-64" placeholder="Search company…" x-model="q" @input.debounce.300ms="loadTenants()"><select class="input w-auto" x-model="status" @change="loadTenants()"><option value="">All</option><template x-for="s in ['trial','active','grace','suspended']"><option :value="s" x-text="s"></option></template></select></div>
     <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr><th class="th">Company</th><th class="th">Plan</th><th class="th">Status</th><th class="th">Created</th><th class="th"></th></tr></thead>
       <tbody class="divide-y divide-slate-100"><template x-for="t in tenants" :key="t.id"><tr><td class="td font-medium" x-text="t.name"></td><td class="td" x-text="t.plan?.name || '—'"></td><td class="td"><span class="badge capitalize" :class="{ 'bg-emerald-100 text-emerald-800': t.status === 'active', 'bg-sky-100 text-sky-800': t.status === 'trial', 'bg-amber-100 text-amber-800': t.status === 'grace', 'bg-red-100 text-red-700': t.status === 'suspended' }" x-text="t.status"></span></td><td class="td" x-text="t.created_at.slice(0,10)"></td><td class="td text-right"><button class="btn btn-secondary btn-sm" @click="openTenant(t.id)">Open</button></td></tr></template></tbody></table></div>
   </section>
@@ -38,6 +38,12 @@
 
   <section x-show="tab === 'plans'" class="space-y-3">
     <template x-for="p in plans" :key="p.id"><div class="card grid items-center gap-3 sm:grid-cols-[1fr_8rem_auto]"><div><p class="font-semibold" x-text="p.name + ' (' + p.key + ')'"></p><p class="text-xs text-slate-500" x-text="(p.modules || []).join(', ')"></p></div><input class="input" type="number" x-model.number="p.price_monthly"><button class="btn btn-secondary" @click="savePlan(p)">Save</button></div></template>
+  </section>
+
+  <section x-show="tab === 'contacts'" class="space-y-3">
+    <p x-show="!contacts.length" class="rounded-xl bg-white p-6 text-center text-slate-500">No messages from the website yet.</p>
+    <template x-for="m in contacts" :key="m.id"><article class="card"><div class="flex items-start justify-between gap-3"><div><p class="font-semibold" x-text="m.name + (m.company ? ' · ' + m.company : '')"></p><p class="text-sm text-slate-500" x-text="[m.email, m.phone, m.interest].filter(Boolean).join(' · ')"></p></div>
+      <button class="btn btn-secondary btn-sm" x-show="!m.handled_at" @click="handled(m)">Mark handled</button><span class="badge bg-emerald-100 text-emerald-800" x-show="m.handled_at">Handled</span></div><p class="mt-2 whitespace-pre-line text-sm" x-text="m.message"></p><p class="mt-1 text-xs text-slate-400" x-text="m.created_at"></p></article></template>
   </section>
 
   <section x-show="tab === 'audit'"><div class="overflow-x-auto rounded-xl border border-slate-200 bg-white"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr><th class="th">When</th><th class="th">Action</th><th class="th">Tenant</th><th class="th">Details</th></tr></thead>

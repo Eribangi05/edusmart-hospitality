@@ -160,4 +160,9 @@
     <string name="subscription_banner">Kwiyandikisha kwahagaritswe: gusoma gusa</string>
     <string name="version">Verisiyo %1$s</string>
     <string name="not_available">Ntibiboneka kuri uru ruhare cyangwa gahunda</string>
+    <string name="notifications">Bisaba kwitabwaho</string>
+    <string name="no_alerts">Byose bimeze neza.</string>
+    <string name="promo_code">Kode y\'igabanywa</string>
+    <string name="apply">Shyiraho</string>
+    <string name="promo_applied">Igabanywa ryashyizweho</string>
 </resources>

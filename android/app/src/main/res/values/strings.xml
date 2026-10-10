@@ -160,4 +160,9 @@
     <string name="subscription_banner">Subscription suspended: read-only mode</string>
     <string name="version">Version %1$s</string>
     <string name="not_available">Not available for your role or plan</string>
+    <string name="notifications">Needs attention</string>
+    <string name="no_alerts">All clear. Nothing needs attention.</string>
+    <string name="promo_code">Promo code</string>
+    <string name="apply">Apply</string>
+    <string name="promo_applied">Discount applied</string>
 </resources>

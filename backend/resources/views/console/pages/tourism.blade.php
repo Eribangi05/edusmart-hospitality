@@ -3,7 +3,7 @@
   <div x-data="bookingsPage()">
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <h1 class="text-2xl font-bold" x-text="$store.app.t('bookings')"></h1>
-      <input class="input w-56" :placeholder="$store.app.t('search')" x-model.debounce.300ms="q" @input="load()">
+      <input class="input w-56" :placeholder="$store.app.t('search')" x-model="q" @input.debounce.300ms="load()">
       <select class="input w-auto" x-model="status" @change="load()"><option value="">All</option><template x-for="s in ['inquiry','confirmed','paid','in_progress','completed','cancelled','no_show']"><option :value="s" x-text="s.replace('_',' ')"></option></template></select>
       <div class="flex-1"></div>
       <button class="btn btn-primary" @click="newForm()" x-show="$store.app.can('tourism.create')">+ New booking</button>
@@ -43,7 +43,7 @@
         <div class="flex items-start justify-between"><div><h2 class="text-xl font-bold" x-text="view.number"></h2><p class="text-sm text-slate-500" x-text="view.customer_name + ' · ' + view.date.slice(0,10) + ' · ' + (view.pax_adults + view.pax_children) + ' pax'"></p></div><button class="btn btn-secondary btn-sm" @click="view = null" x-text="$store.app.t('close')"></button></div>
         <span class="badge capitalize" :class="badge(view.status)" x-text="view.status.replace('_',' ')"></span>
         <table class="min-w-full text-sm"><tbody class="divide-y divide-slate-100"><template x-for="l in view.lines" :key="l.id"><tr><td class="py-1" x-text="Number(l.quantity) + ' × ' + l.description"></td><td class="py-1 text-right" x-text="money(l.line_total)"></td></tr></template></tbody></table>
-        <p class="text-sm"><span x-text="$store.app.t('total')"></span> <b x-text="money(view.total)"></b> · <span x-text="$store.app.t('balance')"></span> <b x-text="money(view.balance)"></b></p>
+        <p class="text-sm"><span x-text="$store.app.t('total')"></span> <b x-text="money(view.total)"></b> · <span x-text="$store.app.t('balance')"></span> <b x-text="money(view.balance)"></b> · <button class="text-xs text-emerald-700 underline" @click="printInvoice()" x-text="$store.app.t('print_invoice')"></button></p>
         <div class="flex flex-wrap gap-2"><template x-for="s in { inquiry: ['confirmed','cancelled'], confirmed: ['in_progress','cancelled','no_show'], paid: ['in_progress','cancelled','no_show'], in_progress: ['completed'] }[view.status] || []" :key="s"><button class="btn btn-secondary btn-sm capitalize" @click="status(s)" x-text="s.replace('_',' ')"></button></template></div>
         <div class="card space-y-2" x-show="['confirmed','paid','in_progress','inquiry'].includes(view.status) && $store.app.can('tourism.assign')">
           <h3 class="font-semibold">Guide / vehicle</h3>
@@ -83,6 +83,17 @@
       <h3 class="font-semibold">Participants</h3><ul class="text-sm"><template x-for="p in manifest.participants" :key="p.id"><li x-text="p.name + (p.nationality ? ' · ' + p.nationality : '') + (p.id_number ? ' · ' + p.id_number : '')"></li></template></ul>
       <h3 class="font-semibold">Guides &amp; vehicles</h3><ul class="text-sm"><template x-for="r in manifest.resources" :key="r.id"><li x-text="r.name + ' (' + r.kind + ')' + (r.plate ? ' ' + r.plate : '')"></li></template></ul>
     </div></template></div>
+  </div>
+</template>
+@endverbatim
+
+@verbatim
+<template x-if="$store.app.route.page === 'tours.calendar'">
+  <div x-data="tourCalendar()">
+    <h1 class="mb-3 text-2xl font-bold" x-text="$store.app.t('calendar')"></h1>
+@endverbatim
+@include('partials.tourcal')
+@verbatim
   </div>
 </template>
 @endverbatim

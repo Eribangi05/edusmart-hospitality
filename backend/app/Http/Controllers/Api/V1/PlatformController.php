@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Exceptions\ApiError;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\ContactMessage;
 use App\Models\Device;
 use App\Models\Invoice;
 use App\Models\Plan;
@@ -111,6 +112,19 @@ class PlatformController extends Controller
         $result = $eraser->erase($t);
 
         return response()->json(['data' => $result]);
+    }
+
+    public function contacts(Request $r)
+    {
+        return response()->json(['data' => ContactMessage::orderByDesc('created_at')->limit(100)->get()]);
+    }
+
+    public function handleContact(string $id)
+    {
+        $m = ContactMessage::findOrFail($id);
+        $m->forceFill(['handled_at' => now()])->save();
+
+        return response()->json(['data' => $m]);
     }
 
     public function plans()

@@ -254,6 +254,8 @@ fun OrderDetailScreen(id: String) {
     var momoPaymentId by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var voidDialog by remember { mutableStateOf<JsonObject?>(null) }
+    var promo by remember { mutableStateOf("") }
+    val promoOk = stringResource(R.string.promo_applied)
     val waiting = stringResource(R.string.momo_waiting)
     val failedMsg = stringResource(R.string.momo_failed)
     val notSynced = stringResource(R.string.order_not_synced)
@@ -300,6 +302,16 @@ fun OrderDetailScreen(id: String) {
         message?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         if (momoPaymentId != null) Text(waiting, color = MaterialTheme.colorScheme.primary)
 
+        if (open && c?.has("pos", "pos.edit") == true) Row2 {
+            Field(promo, { promo = it.uppercase() }, stringResource(R.string.promo_code), Modifier.weight(1f))
+            OutlinedButton(enabled = promo.isNotBlank(), onClick = {
+                scope.launch {
+                    message = null
+                    if (store.isPending("orders", id) && (!container.sync.syncNow() || store.isPending("orders", id))) { message = notSynced; return@launch }
+                    try { container.api.post("orders/$id/voucher", com.edusmartconsult.hospitality.core.obj { put("code", promo) }); container.sync.syncNow(); promo = ""; snack.showSnackbar(promoOk) } catch (e: ApiException) { message = if (e.isOffline) offline else e.message }
+                }
+            }) { Text(stringResource(R.string.apply)) }
+        }
         if (status == "open") OutlinedButton(onClick = { scope.launch { store.sendOrder(id) } }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.send_order)) }
         if (open && balance > 0 && c?.has("pos", "pos.create") == true) {
             SectionTitle(stringResource(R.string.pay))

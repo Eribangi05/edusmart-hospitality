@@ -9,6 +9,7 @@ use App\Models\Domain\Order;
 use App\Models\Domain\OrderItem;
 use App\Models\Domain\Payment;
 use App\Models\Domain\Shift;
+use App\Models\Domain\Voucher;
 use App\Models\PaymentMethod;
 use App\Models\Setting;
 use App\Models\TaxRate;
@@ -168,7 +169,7 @@ class PosService
     public function applyVoucher(Order $order, string $code): Order
     {
         $this->ensureOpen($order);
-        $v = \App\Models\Domain\Voucher::where('code', strtoupper(trim($code)))->orWhere('code', trim($code))->first();
+        $v = Voucher::where('code', strtoupper(trim($code)))->orWhere('code', trim($code))->first();
         if (! $v || ! $v->is_active) {
             throw new ApiError('voucher_invalid', 'This code is not valid.', 422);
         }
@@ -186,10 +187,10 @@ class PosService
         if ($gross < $v->min_total) {
             throw new ApiError('voucher_min_total', 'Minimum order total for this code is '.number_format($v->min_total).' RWF.', 422);
         }
-        $discount = $v->kind === 'percent' ? (int) round($gross * $v->value / 10000) : (int) $v->value;
+        $discount = $v->kind === 'percent' ? (int) round($gross * min($v->value, 100) / 100) : (int) $v->value; // percent is a whole number: 10 = 10%
         DB::transaction(function () use ($order, $v, $discount, $gross) {
             if (! empty($order->meta['voucher'])) { // replacing an earlier code releases it
-                \App\Models\Domain\Voucher::where('code', $order->meta['voucher'])->where('uses', '>', 0)->decrement('uses');
+                Voucher::where('code', $order->meta['voucher'])->where('uses', '>', 0)->decrement('uses');
             }
             $v->increment('uses');
             $order->forceFill(['discount' => min($discount, $gross), 'meta' => array_merge($order->meta ?? [], ['voucher' => $v->code])])->save();

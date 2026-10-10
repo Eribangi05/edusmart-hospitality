@@ -10,7 +10,7 @@ class WebConsoleTest extends TestCase
 {
     public function test_public_pages_render(): void
     {
-        foreach (['/', '/login', '/register', '/privacy', '/terms'] as $url) {
+        foreach (['/', '/features', '/solutions', '/pricing', '/contact', '/login', '/register', '/forgot-password', '/privacy', '/terms'] as $url) {
             $this->get($url)->assertOk();
         }
         $this->get('/api/v1/health')->assertOk();
@@ -59,5 +59,50 @@ class WebConsoleTest extends TestCase
         $this->postJson('/logout');
         $this->postJson('/login', ['email' => 'kivu-lodge@example.com', 'password' => 'correct-horse-battery'])->assertOk()->assertJsonPath('redirect', '/app');
         $this->get('/admin')->assertForbidden();
+    }
+
+    public function test_pricing_page_shows_live_plans(): void
+    {
+        $this->get('/pricing')->assertOk()->assertSee('Starter')->assertSee('30,000')->assertSee('Business');
+    }
+
+    public function test_contact_form_stores_message_and_blocks_bots(): void
+    {
+        $this->postJson('/contact', ['name' => 'Aline', 'email' => 'a@example.com', 'message' => 'Demo please', 'interest' => 'Hotel / lodge'])->assertCreated();
+        $this->assertDatabaseHas('contact_messages', ['email' => 'a@example.com', 'interest' => 'Hotel / lodge']);
+        $this->postJson('/contact', ['name' => 'Bot', 'email' => 'b@example.com', 'message' => 'spam', 'website' => 'http://spam'])->assertStatus(422);
+        $this->postJson('/contact', ['name' => 'x'])->assertStatus(422);
+    }
+
+    public function test_each_workspace_is_gated_by_role(): void
+    {
+        [$h] = $this->registerCompany('Kivu Lodge', null, ['modules' => ['rooms', 'pos', 'housekeeping', 'staff']]);
+        $tid = $this->getJson('/api/v1/me/context', $h)->json('tenant.id');
+        $this->get('/terminal')->assertRedirect('/login');
+        $this->userWithRole($tid, 'kitchen', 'k@example.com');
+        $this->userWithRole($tid, 'housekeeper', 'hk@example.com');
+        $this->userWithRole($tid, 'waiter', 'w@example.com');
+        $pw = 'correct-horse-battery';
+
+        $this->postJson('/login', ['email' => 'k@example.com', 'password' => $pw])->assertOk();
+        $this->get('/kds')->assertOk();
+        $this->get('/terminal')->assertForbidden();   // kitchen cannot create orders
+        $this->get('/desk')->assertForbidden();
+        $this->postJson('/logout');
+
+        $this->postJson('/login', ['email' => 'hk@example.com', 'password' => $pw])->assertOk();
+        $this->get('/staff')->assertOk();
+        $this->get('/kds')->assertForbidden();
+        $this->postJson('/logout');
+
+        $this->postJson('/login', ['email' => 'w@example.com', 'password' => $pw])->assertOk();
+        $this->get('/terminal')->assertOk();
+        $this->get('/workspaces')->assertOk();
+        $this->postJson('/logout');
+
+        $this->postJson('/login', ['email' => 'kivu-lodge@example.com', 'password' => $pw])->assertOk();
+        foreach (['/app', '/terminal', '/kds', '/desk', '/staff', '/workspaces'] as $u) {
+            $this->get($u)->assertOk();
+        }
     }
 }

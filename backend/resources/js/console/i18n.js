@@ -13,6 +13,7 @@ const en = {
     yes: 'Yes', no: 'No', pay: 'Pay', paid: 'Paid', balance: 'Balance', export: 'Export CSV', from: 'From', to: 'To', language: 'Language', property: 'Property', all_properties: 'All properties',
     check_in: 'Check in', check_out: 'Check out', nights: 'Nights', guest: 'Guest', room: 'Room', free: 'free', occupied: 'Occupied', vacant: 'Vacant', reserved: 'Reserved',
     read_only: 'Your subscription is suspended: the workspace is read-only. Open Subscription to renew.', grace: 'Your subscription has expired and is in a grace period.',
+    timeline: 'Timeline', calendar: 'Tours calendar', vouchers: 'Promo codes', workspaces: 'Workspaces', notifications: 'Notifications', appearance: 'Appearance', pinned: 'Pinned', search_all: 'Search pages, guests, bookings, orders…', no_alerts: 'All clear. Nothing needs attention.', profile: 'Profile', print_invoice: 'Print invoice', setup_guide: 'Setup guide', activity: 'Recent activity', trends: 'Last 14 days',
 };
 const fr = {
     dashboard: 'Tableau de bord', rooms: 'Chambres', board: 'Plan des chambres', reservations: 'Réservations', guests: 'Clients', room_types: 'Types de chambre', rate_plans: 'Tarifs',
@@ -27,6 +28,7 @@ const fr = {
     yes: 'Oui', no: 'Non', pay: 'Payer', paid: 'Payé', balance: 'Solde', export: 'Exporter CSV', from: 'Du', to: 'Au', language: 'Langue', property: 'Établissement', all_properties: 'Tous les établissements',
     check_in: 'Arrivée', check_out: 'Départ', nights: 'Nuits', guest: 'Client', room: 'Chambre', free: 'libres', occupied: 'Occupée', vacant: 'Libre', reserved: 'Réservée',
     read_only: 'Votre abonnement est suspendu : l’espace est en lecture seule. Ouvrez Abonnement pour renouveler.', grace: 'Votre abonnement a expiré et est en période de grâce.',
+    timeline: 'Planning', calendar: 'Calendrier des tours', vouchers: 'Codes promo', workspaces: 'Espaces de travail', notifications: 'Notifications', appearance: 'Apparence', pinned: 'Épinglés', search_all: 'Rechercher pages, clients, réservations, commandes…', no_alerts: 'Tout est en ordre.', profile: 'Profil', print_invoice: 'Imprimer la facture', setup_guide: 'Guide de démarrage', activity: 'Activité récente', trends: '14 derniers jours',
 };
 const rw = {
     dashboard: 'Incamake', rooms: 'Ibyumba', board: 'Imiterere y’ibyumba', reservations: 'Kubika ibyumba', guests: 'Abashyitsi', room_types: 'Ubwoko bw’ibyumba', rate_plans: 'Ibiciro',
@@ -41,6 +43,7 @@ const rw = {
     yes: 'Yego', no: 'Oya', pay: 'Ishyura', paid: 'Byishyuwe', balance: 'Asigaye', export: 'Sohora CSV', from: 'Guhera', to: 'Kugeza', language: 'Ururimi', property: 'Ishami', all_properties: 'Amashami yose',
     check_in: 'Kwinjira', check_out: 'Gusohoka', nights: 'Amajoro', guest: 'Umushyitsi', room: 'Icyumba', free: 'zisigaye', occupied: 'Cyuzuye', vacant: 'Kirimo ubusa', reserved: 'Cyabikijwe',
     read_only: 'Kwiyandikisha kwawe kwarahagaritswe: ushobora kureba gusa. Fungura Kwiyandikisha kugira ngo wongere.', grace: 'Kwiyandikisha kwawe kwarangiye, uri mu gihe cy’inyongera.',
+    timeline: 'Igihe cy’ibyumba', calendar: 'Kalendari y’ingendo', vouchers: 'Kode z’igabanywa', workspaces: 'Ahakorerwa', notifications: 'Ibimenyetso', appearance: 'Imiterere', pinned: 'Ibyakomejwe', search_all: 'Shakisha amapaji, abashyitsi, ibyabikijwe, komande…', no_alerts: 'Byose bimeze neza.', profile: 'Umwirondoro', print_invoice: 'Sohora fagitire', setup_guide: 'Uko utangira', activity: 'Ibyakozwe vuba', trends: 'Iminsi 14 ishize',
 };
 export const dictionaries = { en, fr, rw };
 

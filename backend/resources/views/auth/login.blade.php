@@ -1,8 +1,8 @@
-@extends('layouts.public')
+@extends('layouts.auth')
 @section('title', 'Log in · Edusmart Hospitality')
 @section('body')
-<main class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4" x-data="loginForm()">
-  <a href="/" class="mb-6 text-center text-lg font-semibold text-emerald-700">Edusmart Hospitality</a>
+<main x-data="loginForm()">
+  
   <form @submit.prevent="submit" class="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
     <h1 class="text-xl font-semibold">Log in</h1>
     <p x-show="error" x-text="error" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"></p>
@@ -14,5 +14,4 @@
     <p class="text-center text-sm text-slate-600">New here? <a class="text-emerald-700 underline" href="/register">Create a company</a></p>
   </form>
 </main>
-@vite(['resources/js/auth.js'])
 @endsection
